@@ -4,8 +4,8 @@ const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const crypto = require('crypto');
 const path = require('path');
 
-// Prefixo fixo — atualizar com o App ID real após cadastro no partners Nuvemshop
-const APP_PREFIX = 'fixyou';
+// Prefixo fixo — nunca alterar
+const APP_PREFIX = 'fixyou_18058';
 
 const client = new S3Client({
   region: 'auto',
