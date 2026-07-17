@@ -9,6 +9,11 @@ const router = express.Router();
  * body com o client_secret). Tolerante a encoding (hex ou base64) e timing-safe.
  * Retorna: true = confere | false = header presente mas NÃO confere | null = não
  * dá para verificar (sem secret/header/raw body — ex.: chamada manual/dev).
+ *
+ * IMPORTANTE: todo handler que muta dados deve exigir `checkHmac(req) === true`
+ * (nunca apenas `!== false`) — `null` significa "não verificável", não "confie
+ * mesmo assim". Tratar `null` como passável permite que qualquer requisição sem
+ * o header de assinatura seja aceita como se fosse da Nuvemshop.
  */
 function checkHmac(req) {
   const secret = process.env.NUVEMSHOP_CLIENT_SECRET;
@@ -50,8 +55,8 @@ async function markUninstalled(storeId) {
  * POST /webhooks/app/uninstalled — a loja desinstalou o app.
  */
 router.post('/app/uninstalled', async (req, res) => {
-  if (checkHmac(req) === false) {
-    console.warn('[nuvemshop] app/uninstalled com HMAC invalido — ignorado');
+  if (checkHmac(req) !== true) {
+    console.warn('[nuvemshop] app/uninstalled sem HMAC válido — ignorado');
     return res.status(401).json({ error: 'Invalid HMAC.' });
   }
   const storeId = req.body?.store_id;
@@ -70,7 +75,7 @@ router.post('/store/redact', async (req, res) => {
   const hmac = checkHmac(req);
   const storeId = req.body?.store_id;
   console.log(`[nuvemshop][LGPD] store/redact store_id=${storeId} hmac=${hmac}`);
-  if (hmac !== false) await markUninstalled(storeId);
+  if (hmac === true) await markUninstalled(storeId);
   res.status(200).json({ success: true });
 });
 
