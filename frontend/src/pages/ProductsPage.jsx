@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
@@ -24,59 +24,6 @@ const MODELOS = [
   { id: 3, key: 'centralizado' },
   { id: 4, key: 'textoDuplicado' },
 ];
-
-// ─── Dropdown de ações — mesmo padrão usado no AlugueMais ────────────────────
-function ActionsMenu({ items }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function handler(e) {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-    }
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
-
-  return (
-    <Box ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
-      <Button size="small" appearance="neutral" onClick={() => setOpen((v) => !v)}>
-        Ações ▾
-      </Button>
-      {open && (
-        <Box
-          backgroundColor="neutral-background"
-          borderColor="neutral-surfaceHighlight"
-          borderStyle="solid"
-          borderWidth="1"
-          borderRadius="2"
-          style={{
-            position: 'absolute',
-            right: 0,
-            top: '110%',
-            zIndex: 50,
-            minWidth: 160,
-            boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
-          }}
-        >
-          <Box display="flex" flexDirection="column" padding="1" gap="1">
-            {items.map((item) => (
-              <Button
-                key={item.label}
-                appearance="transparent"
-                size="small"
-                onClick={() => { item.onClick(); setOpen(false); }}
-              >
-                {item.label}
-              </Button>
-            ))}
-          </Box>
-        </Box>
-      )}
-    </Box>
-  );
-}
 
 export default function ProductsPage() {
   const { t } = useTranslation();
@@ -225,11 +172,9 @@ export default function ProductsPage() {
                         <Text color="neutral-textLow">{modeloLabel(p.modelo)}</Text>
                       </Table.Cell>
                       <Table.Cell>
-                        <ActionsMenu
-                          items={[
-                            { label: t('products.actionSetModel'), onClick: () => openDefinirModelo(p) },
-                          ]}
-                        />
+                        <Button size="small" appearance="neutral" onClick={() => openDefinirModelo(p)}>
+                          {t('products.actionSetModel')}
+                        </Button>
                       </Table.Cell>
                     </Table.Row>
                   ))}
