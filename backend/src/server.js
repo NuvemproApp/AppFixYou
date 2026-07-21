@@ -70,6 +70,7 @@ const billingRouter = require('./routes/billing');
 const termsRouter = require('./routes/terms');
 const supportRouter = require('./routes/support');
 const productsRouter = require('./routes/products');
+const personalizationsRouter = require('./routes/personalizations');
 const nuvemshopWebhooksRouter = require('./routes/nuvemshopWebhooks');
 
 app.use('/auth', authRouter);
@@ -77,6 +78,7 @@ app.use('/api/billing', billingRouter);
 app.use('/api/terms', termsRouter);
 app.use('/api/support', supportRouter);
 app.use('/api/products', productsRouter);
+app.use('/api/personalizations', personalizationsRouter);
 app.use('/webhooks', nuvemshopWebhooksRouter);
 
 // ═══════════════════════════════════════════

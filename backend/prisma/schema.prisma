@@ -29,6 +29,7 @@ model Store {
   termsAcceptances  TermsAcceptance[]
   supportTickets    SupportTicket[]
   productPersonalizations ProductPersonalization[]
+  personalizationItems    PersonalizationItem[]
   @@map("stores")
 }
 
@@ -111,6 +112,27 @@ model ProductPersonalization {
 
   @@unique([storeId, productId])
   @@map("product_personalizations")
+}
+
+// ─── FixYou: catálogo de personalizações por categoria (Cores de fonte, ────
+// Conjuntos de cores, etc.) — uma tabela genérica reaproveitada por todas as
+// categorias, igual ao padrão do legado (única tabela + campo categoria).
+// Título e Valor são imutáveis após a criação (mesma regra do legado) — o
+// endpoint de update só aceita ativo/posicao.
+model PersonalizationItem {
+  id        Int      @id @default(autoincrement())
+  storeId   Int
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  categoria String   // coresDeFonte | conjuntosDeCores | fontes | icones | imagensDeFundo | patterns
+  titulo    String
+  valor     Json     // cor única (string) ou conjunto de cores (array) conforme a categoria
+  ativo     Boolean  @default(true)
+  posicao   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([storeId, categoria, posicao])
+  @@map("personalization_items")
 }
 
 // ═══ ADMIN ═══
