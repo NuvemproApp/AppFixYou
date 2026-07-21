@@ -1,18 +1,49 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Box, Card, Text, Title } from '@nimbus-ds/components';
+import { useNavigate } from 'react-router-dom';
+import { Box, Card, Title } from '@nimbus-ds/components';
+import { EditIcon } from '@nimbus-ds/icons';
+import QuickLinkCard from '../components/QuickLinkCard.jsx';
+
+const CATEGORIAS = ['fontes', 'coresDeFonte', 'icones', 'imagensDeFundo', 'conjuntosDeCores', 'patterns'];
+
+const SLUGS = {
+  fontes: 'fontes',
+  coresDeFonte: 'cores-de-fonte',
+  icones: 'icones',
+  imagensDeFundo: 'imagens-de-fundo',
+  conjuntosDeCores: 'conjuntos-de-cores',
+  patterns: 'patterns',
+};
 
 export default function PersonalizationsPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   return (
-    <Box display="flex" flexDirection="column" gap="4">
-      <Title as="h2">{t('dashboard.personalizations.title')}</Title>
-      <Card>
-        <Card.Body>
-          <Text color="neutral-textLow">{t('common.comingSoon')}</Text>
-        </Card.Body>
-      </Card>
-    </Box>
+    <Card>
+      <Card.Body>
+        <Box display="flex" flexDirection="column" gap="4">
+          <Title as="h2">{t('dashboard.title')}</Title>
+          <Title as="h3">{t('personalizacoes.title')}</Title>
+
+          <Box
+            display="grid"
+            gridTemplateColumns="repeat(auto-fit, minmax(220px, 1fr))"
+            gap="4"
+          >
+            {CATEGORIAS.map((categoria) => (
+              <QuickLinkCard
+                key={categoria}
+                icon={<EditIcon />}
+                title={t(`personalizacoes.categorias.${categoria}.title`)}
+                actionLabel={t(`personalizacoes.categorias.${categoria}.action`)}
+                onAction={() => navigate(`/personalizacoes/${SLUGS[categoria]}`)}
+              />
+            ))}
+          </Box>
+        </Box>
+      </Card.Body>
+    </Card>
   );
 }

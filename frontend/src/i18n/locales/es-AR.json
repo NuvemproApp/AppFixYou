@@ -220,6 +220,17 @@
     "errorLoad": "Error al cargar productos.",
     "errorSaveModelo": "Error al guardar el modelo."
   },
+  "personalizacoes": {
+    "title": "Personalizaciones",
+    "categorias": {
+      "fontes": { "title": "Fuentes", "action": "Ver todas" },
+      "coresDeFonte": { "title": "Colores de fuente", "action": "Ver todos" },
+      "icones": { "title": "\u00cdconos", "action": "Ver todos" },
+      "imagensDeFundo": { "title": "Im\u00e1genes de fondo", "action": "Ver todas" },
+      "conjuntosDeCores": { "title": "Conjuntos de colores", "action": "Ver todos" },
+      "patterns": { "title": "Patrones", "action": "Ver todos" }
+    }
+  },
   "settings": {
     "title": "Configuraci\u00f3n",
     "placeholder": "Agrega aqu\u00ed las configuraciones de tu app."

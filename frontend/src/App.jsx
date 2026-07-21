@@ -9,6 +9,7 @@ import BillingPage from './pages/BillingPage.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import ProductsPage from './pages/ProductsPage.jsx';
 import PersonalizationsPage from './pages/PersonalizationsPage.jsx';
+import PersonalizationCategoryPage from './pages/PersonalizationCategoryPage.jsx';
 import { Box, Alert, Text, Button } from '@nimbus-ds/components';
 import { useNavigate } from 'react-router-dom';
 
@@ -73,6 +74,7 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route path="produtos" element={<ProductsPage />} />
           <Route path="personalizacoes" element={<PersonalizationsPage />} />
+          <Route path="personalizacoes/:categoria" element={<PersonalizationCategoryPage />} />
           <Route path="billing" element={<BillingPage />} />
           {/* Adicione aqui as rotas específicas do seu app */}
           <Route path="*" element={<Navigate to="/" replace />} />
