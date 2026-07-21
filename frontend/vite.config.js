@@ -16,6 +16,7 @@ try {
 export default defineConfig({
   define: {
     __GIT_COMMIT__: JSON.stringify(gitCommit),
+    global: 'globalThis',
   },
   plugins: [react()],
   server: {

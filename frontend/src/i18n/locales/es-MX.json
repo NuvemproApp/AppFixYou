@@ -10,7 +10,7 @@
     }
   },
   "nav": {
-    "dashboard": "Panel",
+    "dashboard": "FixYou",
     "settings": "Configuraci\u00f3n",
     "billing": "Planes",
     "support": "Soporte"
@@ -228,9 +228,38 @@
     ]
   },
   "dashboard": {
-    "title": "Panel",
-    "welcome": "\u00a1Bienvenido a tu panel!",
-    "contentPlaceholder": "Agrega aqu\u00ed el contenido de tu app."
+    "title": "FixYou",
+    "products": {
+      "title": "Productos",
+      "description": "Gestiona tus productos de tu cuenta Nuvemshop editando sus personalizaciones correspondientes.",
+      "action": "Ver todos"
+    },
+    "personalizations": {
+      "title": "Personalizaciones",
+      "description": "Aqu\u00ed puedes gestionar colores, fuentes e im\u00e1genes de tus productos personalizados.",
+      "action": "Ver todas"
+    }
+  },
+  "products": {
+    "title": "Productos",
+    "searchPlaceholder": "Buscar producto",
+    "colCode": "C\u00f3digo",
+    "colProduct": "Producto",
+    "colModel": "Modelo",
+    "actionSetModel": "Definir modelo",
+    "modalTitle": "Definir modelo",
+    "fieldModel": "Modelo:",
+    "modelos": {
+      "none": "Ning\u00fan modelo",
+      "mesclado": "Modelo Mezclado",
+      "textoSomente": "Modelo Solo Texto",
+      "centralizado": "Modelo Centralizado",
+      "textoDuplicado": "Modelo Texto Duplicado"
+    },
+    "empty": "No se encontraron productos.",
+    "searchEmpty": "No se encontraron productos para esa b\u00fasqueda.",
+    "errorLoad": "Error al cargar productos.",
+    "errorSaveModelo": "Error al guardar el modelo."
   },
   "settings": {
     "title": "Configuraci\u00f3n",
@@ -255,6 +284,7 @@
     "error": "Error",
     "success": "\u00a1\u00c9xito!",
     "noData": "No se encontraron datos.",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "comingSoon": "Próximamente."
   }
 }

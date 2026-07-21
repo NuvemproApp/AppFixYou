@@ -28,6 +28,7 @@ model Store {
   profile           StoreProfile?
   termsAcceptances  TermsAcceptance[]
   supportTickets    SupportTicket[]
+  productPersonalizations ProductPersonalization[]
   @@map("stores")
 }
 
@@ -94,6 +95,22 @@ model TermsAcceptance {
   acceptedAt      DateTime     @default(now())
   @@unique([storeId, termsVersionId])
   @@map("terms_acceptances")
+}
+
+// ─── FixYou: modelo de personalização escolhido por produto ────────────────
+// Associação simples produto → modelo. Sem registro = "Nenhum modelo" (o
+// endpoint apaga a linha em vez de gravar um valor nulo/zero).
+model ProductPersonalization {
+  id        Int      @id @default(autoincrement())
+  storeId   Int
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  productId String   // ID do produto na Nuvemshop
+  modelo    Int      // 1=Mesclado 2=TextoSomente 3=Centralizado 4=TextoDuplicado
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([storeId, productId])
+  @@map("product_personalizations")
 }
 
 // ═══ ADMIN ═══
