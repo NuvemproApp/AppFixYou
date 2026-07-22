@@ -80,7 +80,6 @@ app.use('/api/support', supportRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/personalizations', personalizationsRouter);
 app.use('/webhooks', nuvemshopWebhooksRouter);
-app.use('/api/_temp-font-seed', require('./routes/_tempFontSeed')); // TEMPORÁRIO — remover após o seed
 
 // ═══════════════════════════════════════════
 // ADMIN ROUTES
