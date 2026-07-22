@@ -91,6 +91,27 @@ async function uploadToR2(buffer, originalname, mimetype, storeSerial, nuvemshop
 }
 
 /**
+ * Faz upload de um buffer pra uma key EXPLÍCITA (sem uuid/storeSerial) —
+ * usado por assets globais/compartilhados entre lojas, como o catálogo de
+ * fontes (curado pela Nuvempro, não por upload do lojista).
+ */
+async function uploadRaw(key, buffer, mimetype) {
+  const bucket = process.env.R2_BUCKET_NAME;
+  if (!bucket) throw new Error('[r2] R2_BUCKET_NAME ausente');
+
+  await client.send(new PutObjectCommand({
+    Bucket:       bucket,
+    Key:          key,
+    Body:         buffer,
+    ContentType:  mimetype,
+    CacheControl: 'public, max-age=31536000',
+  }));
+
+  console.log(`[r2] upload ok → ${key}`);
+  return key;
+}
+
+/**
  * Remove um objeto do R2 a partir de qualquer formato armazenado (key, URL
  * assinada ou pública). Best-effort — nunca lança; quem chama decide se loga.
  * Retorna true se a chamada ao R2 foi feita com sucesso (ou não havia nada
@@ -112,4 +133,4 @@ async function deleteFromR2(stored) {
   }
 }
 
-module.exports = { uploadToR2, getPresignedUrl, getPublicUrl, extractKey, deleteFromR2 };
+module.exports = { uploadToR2, uploadRaw, getPresignedUrl, getPublicUrl, extractKey, deleteFromR2, APP_PREFIX };

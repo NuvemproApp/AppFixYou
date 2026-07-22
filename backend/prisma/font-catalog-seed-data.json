@@ -1,0 +1,326 @@
+[
+  {
+    "slug": "AlexBrush-Regular",
+    "family": "Alex Brush"
+  },
+  {
+    "slug": "AlwaysInMyHeart",
+    "family": "Always In My Heart"
+  },
+  {
+    "slug": "AmericanCaptain",
+    "family": "American Captain"
+  },
+  {
+    "slug": "AtomicRobusta-PersonalUse",
+    "family": "Atomic Robusta - Personal Use"
+  },
+  {
+    "slug": "BabyDarling",
+    "family": "Baby Darling"
+  },
+  {
+    "slug": "BabyGirlyScript",
+    "family": "Baby Girly Script"
+  },
+  {
+    "slug": "BadScript-Regular",
+    "family": "Bad Script"
+  },
+  {
+    "slug": "BerlinSansFB-Reg",
+    "family": "Berlin Sans FB"
+  },
+  {
+    "slug": "BrannbollNyPersonalUseOnly",
+    "family": "Brannboll Ny Personal Use Only"
+  },
+  {
+    "slug": "BritannicBold",
+    "family": "Britannic Bold"
+  },
+  {
+    "slug": "CandleMustard",
+    "family": "Candle Mustard"
+  },
+  {
+    "slug": "Cookie-Regular",
+    "family": "Cookie"
+  },
+  {
+    "slug": "Delius-Regular",
+    "family": "Delius"
+  },
+  {
+    "slug": "DO-Script-RegularPRO",
+    "family": "Dreaming Outloud Script Pro"
+  },
+  {
+    "slug": "DroptheGame-Regular",
+    "family": "Drop the Game"
+  },
+  {
+    "slug": "EdwardianScriptITC",
+    "family": "Edwardian Script ITC"
+  },
+  {
+    "slug": "GelatoRegular",
+    "family": "Gelato"
+  },
+  {
+    "slug": "Geometric415BT-BlackA",
+    "family": "Geometr415 Blk BT"
+  },
+  {
+    "slug": "GreatVibes-Regular",
+    "family": "Great Vibes"
+  },
+  {
+    "slug": "Handlee-Regular",
+    "family": "Handlee"
+  },
+  {
+    "slug": "HelloSweety",
+    "family": "Hello Sweety"
+  },
+  {
+    "slug": "josephsophia",
+    "family": "Joseph & Sophia"
+  },
+  {
+    "slug": "Knicknack-Regular",
+    "family": "Knicknack"
+  },
+  {
+    "slug": "LetterKids",
+    "family": "Letter Kids"
+  },
+  {
+    "slug": "LucidaHandwriting-Italic",
+    "family": "Lucida Handwriting"
+  },
+  {
+    "slug": "Madina",
+    "family": "Madina"
+  },
+  {
+    "slug": "MarianeLusia",
+    "family": "Mariane Lusia"
+  },
+  {
+    "slug": "Montserrat-Regular",
+    "family": "Montserrat"
+  },
+  {
+    "slug": "Montserrat-Black",
+    "family": "Montserrat Black"
+  },
+  {
+    "slug": "Montserrat-BlackItalic",
+    "family": "Montserrat Black Italic"
+  },
+  {
+    "slug": "Montserrat-Bold",
+    "family": "Montserrat Bold"
+  },
+  {
+    "slug": "Montserrat-BoldItalic",
+    "family": "Montserrat Bold Italic"
+  },
+  {
+    "slug": "Montserrat-ExtraBold",
+    "family": "Montserrat Extra Bold"
+  },
+  {
+    "slug": "Montserrat-ExtraBoldItalic",
+    "family": "Montserrat Extra Bold Italic"
+  },
+  {
+    "slug": "Montserrat-ExtraLight",
+    "family": "Montserrat Extra Light"
+  },
+  {
+    "slug": "Montserrat-ExtraLightItalic",
+    "family": "Montserrat Extra Light Italic"
+  },
+  {
+    "slug": "Montserrat-Italic",
+    "family": "Montserrat Italic"
+  },
+  {
+    "slug": "Montserrat-Light",
+    "family": "Montserrat Light"
+  },
+  {
+    "slug": "Montserrat-LightItalic",
+    "family": "Montserrat Light Italic"
+  },
+  {
+    "slug": "Montserrat-Medium",
+    "family": "Montserrat Medium"
+  },
+  {
+    "slug": "Montserrat-MediumItalic",
+    "family": "Montserrat Medium Italic"
+  },
+  {
+    "slug": "Montserrat-SemiBold",
+    "family": "Montserrat Semi Bold"
+  },
+  {
+    "slug": "Montserrat-SemiBoldItalic",
+    "family": "Montserrat Semi Bold Italic"
+  },
+  {
+    "slug": "Montserrat-Thin",
+    "family": "Montserrat Thin"
+  },
+  {
+    "slug": "Montserrat-ThinItalic",
+    "family": "Montserrat Thin Italic"
+  },
+  {
+    "slug": "PaperFlowers",
+    "family": "Paper Flowers"
+  },
+  {
+    "slug": "Parisienne-Regular",
+    "family": "Parisienne"
+  },
+  {
+    "slug": "PeaceSans",
+    "family": "Peace Sans"
+  },
+  {
+    "slug": "Pleasewritemeasong",
+    "family": "Please Write Me a Song"
+  },
+  {
+    "slug": "Qiyoshi",
+    "family": "Qiyoshi"
+  },
+  {
+    "slug": "Rubik-Regular",
+    "family": "Rubik"
+  },
+  {
+    "slug": "Rubik-Black",
+    "family": "Rubik Black"
+  },
+  {
+    "slug": "Rubik-BlackItalic",
+    "family": "Rubik Black Italic"
+  },
+  {
+    "slug": "Rubik-Bold",
+    "family": "Rubik Bold"
+  },
+  {
+    "slug": "Rubik-BoldItalic",
+    "family": "Rubik Bold Italic"
+  },
+  {
+    "slug": "Rubik-ExtraBold",
+    "family": "Rubik Extra Bold"
+  },
+  {
+    "slug": "Rubik-ExtraBoldItalic",
+    "family": "Rubik Extra Bold Italic"
+  },
+  {
+    "slug": "Rubik-Italic",
+    "family": "Rubik Italic"
+  },
+  {
+    "slug": "Rubik-Light",
+    "family": "Rubik Light"
+  },
+  {
+    "slug": "Rubik-LightItalic_1",
+    "family": "Rubik Light Italic"
+  },
+  {
+    "slug": "Rubik-Medium",
+    "family": "Rubik Medium"
+  },
+  {
+    "slug": "Rubik-MediumItalic",
+    "family": "Rubik Medium Italic"
+  },
+  {
+    "slug": "Rubik-SemiBold",
+    "family": "Rubik Semi Bold"
+  },
+  {
+    "slug": "Rubik-SemiBoldItalic",
+    "family": "Rubik Semi Bold Italic"
+  },
+  {
+    "slug": "Sacramento-Regular",
+    "family": "Sacramento"
+  },
+  {
+    "slug": "SashamithaRegular",
+    "family": "Sashamitha"
+  },
+  {
+    "slug": "SegoePrint",
+    "family": "Segoe Print"
+  },
+  {
+    "slug": "Sevillana-Regular",
+    "family": "Sevillana"
+  },
+  {
+    "slug": "Shakies",
+    "family": "Shakies"
+  },
+  {
+    "slug": "Sindentosa",
+    "family": "Sindentosa"
+  },
+  {
+    "slug": "Sniglet-Regular",
+    "family": "Sniglet"
+  },
+  {
+    "slug": "Sniglet-ExtraBold",
+    "family": "Sniglet Extra Bold"
+  },
+  {
+    "slug": "Snoopy",
+    "family": "Snoopy"
+  },
+  {
+    "slug": "Sofia-Regular",
+    "family": "Sofia"
+  },
+  {
+    "slug": "StarsLove-BottomHeavy",
+    "family": "Stars and Love Bottom"
+  },
+  {
+    "slug": "StyleFormal",
+    "family": "Style Formal"
+  },
+  {
+    "slug": "StyleScript-Regular",
+    "family": "Style Script"
+  },
+  {
+    "slug": "SummerbeeRegular",
+    "family": "Summerbee"
+  },
+  {
+    "slug": "WaltographUI-Bold",
+    "family": "Waltograph UI"
+  },
+  {
+    "slug": "winterbeauty-Script",
+    "family": "Winter Beauty Script"
+  },
+  {
+    "slug": "Wonderbar",
+    "family": "Wonderbar"
+  }
+]

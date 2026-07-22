@@ -135,6 +135,20 @@ model PersonalizationItem {
   @@map("personalization_items")
 }
 
+// ─── FixYou: catálogo global de fontes (compartilhado por todas as lojas) ──
+// Curado pela Nuvempro (upload feito uma vez via seed), não pelo lojista.
+// ttfKey = fonte real usada na composição da imagem final (server-side).
+// webfontKey = versão pra pré-visualização no painel admin (font-face no navegador).
+model FontCatalogItem {
+  id         Int      @id @default(autoincrement())
+  family     String   @unique
+  ttfKey     String
+  webfontKey String
+  createdAt  DateTime @default(now())
+
+  @@map("font_catalog_items")
+}
+
 // ═══ ADMIN ═══
 
 model AdminUser {
