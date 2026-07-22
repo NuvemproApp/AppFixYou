@@ -159,11 +159,6 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [draggedId, setDraggedId] = useState(null);
-  // Famílias com o FontFace já CONFIRMADO carregado (categoria 'fontes') —
-  // só aplicamos fontFamily no estilo da célula Valor depois disso, nunca
-  // antes (evita o texto aparecer na fonte padrão/serif por um tempo
-  // variável dependendo da rede até o FontFace terminar de carregar).
-  const [loadedFonts, setLoadedFonts] = useState(() => new Set());
 
   // Reordenar por arraste só faz sentido vendo a lista completa e em ordem
   // real — desliga com busca ativa ou mais de 1 página, pra não escrever uma
@@ -200,33 +195,21 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
 
   useEffect(() => {
     if (categoria !== 'fontes') return;
-    let cancelled = false;
     for (const item of items) {
       if (!item.fontFamily || !item.fontWebfontUrl) continue;
-      registerFont(item.fontFamily, item.fontWebfontUrl).then((ok) => {
-        if (!ok || cancelled) return;
-        setLoadedFonts((prev) => new Set(prev).add(item.fontFamily));
-      });
+      registerFont(item.fontFamily, item.fontWebfontUrl);
     }
-    return () => { cancelled = true; };
   }, [items, categoria]);
 
   // Pré-carrega o catálogo inteiro assim que a tela de Fontes abre — não
   // espera o usuário clicar em "Cadastrar" pra só então começar a baixar as
-  // ~50 webfonts. Sem isso, a primeira abertura do FontPicker dispara todos
-  // os downloads de uma vez e algumas fontes aparecem no fallback por um
-  // instante até o FontFace terminar de carregar.
+  // ~50 webfonts.
   useEffect(() => {
     if (categoria !== 'fontes') return;
     let cancelled = false;
     api.get('/api/font-catalog').then(({ data }) => {
       if (cancelled) return;
-      for (const entry of data?.fonts || []) {
-        registerFont(entry.family, entry.webfontUrl).then((ok) => {
-          if (!ok || cancelled) return;
-          setLoadedFonts((prev) => new Set(prev).add(entry.family));
-        });
-      }
+      for (const entry of data?.fonts || []) registerFont(entry.family, entry.webfontUrl);
     }).catch(() => {});
     return () => { cancelled = true; };
   }, [categoria]);
@@ -449,7 +432,7 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
                       </Table.Cell>
                       <Table.Cell>
                         {valueType === 'font' ? (
-                          <span style={{ fontFamily: item.fontFamily && loadedFonts.has(item.fontFamily) ? cssFontFamily(item.fontFamily) : undefined, fontSize: 16 }}>
+                          <span style={{ fontFamily: item.fontFamily ? cssFontFamily(item.fontFamily) : undefined, fontSize: 16 }}>
                             {item.fontFamily || item.titulo}
                           </span>
                         ) : valueType === 'image' ? (

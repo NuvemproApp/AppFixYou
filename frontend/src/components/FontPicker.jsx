@@ -16,14 +16,15 @@ import { registerFont, cssFontFamily } from '../lib/fontRegistry.js';
 // fonte, sem token equivalente, então qualquer elemento que precise
 // renderizar texto em uma fonte específica aqui é <div>/<span> nativo com
 // style={{ fontFamily }} real, nunca Nimbus Text/Box.
+//
+// fontFamily é aplicado incondicionalmente (não espera nenhuma confirmação
+// de carregamento) — registerFont injeta @font-face nativo com
+// font-display:swap, então o navegador mostra o fallback (sans-serif, já
+// incluso em cssFontFamily) e troca sozinho pra fonte real quando ela
+// carrega, sem precisar de estado JS pra isso.
 export default function FontPicker({ value, onChange, disabled }) {
   const { t } = useTranslation();
   const [fonts, setFonts] = useState([]);
-  // Famílias com o FontFace já CONFIRMADO carregado — só aplicamos
-  // fontFamily no estilo depois disso. Aplicar antes é o que fazia o texto
-  // aparecer com a fonte padrão (serif) por tempo variável dependendo da
-  // rede, em vez de simplesmente não estilizar até estar pronto de verdade.
-  const [loadedFonts, setLoadedFonts] = useState(() => new Set());
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const ref = useRef(null);
@@ -36,12 +37,7 @@ export default function FontPicker({ value, onChange, disabled }) {
         if (cancelled) return;
         const list = data?.fonts || [];
         setFonts(list);
-        list.forEach((entry) => {
-          registerFont(entry.family, entry.webfontUrl).then((ok) => {
-            if (!ok || cancelled) return;
-            setLoadedFonts((prev) => new Set(prev).add(entry.family));
-          });
-        });
+        list.forEach((entry) => registerFont(entry.family, entry.webfontUrl));
       } catch {
         // catálogo indisponível — picker fica com placeholder, sem quebrar a página
       }
@@ -79,7 +75,7 @@ export default function FontPicker({ value, onChange, disabled }) {
         disabled={disabled}
         onClick={() => !disabled && setOpen((v) => !v)}
       >
-        <span style={{ fontFamily: selected && loadedFonts.has(selected.family) ? cssFontFamily(selected.family) : undefined }}>
+        <span style={{ fontFamily: selected ? cssFontFamily(selected.family) : undefined }}>
           {selected ? selected.family : t('personalizationItems.selectFontPlaceholder')}
         </span>
         {' ▾'}
@@ -120,7 +116,7 @@ export default function FontPicker({ value, onChange, disabled }) {
                     key={entry.id}
                     onClick={() => handleSelect(entry)}
                     style={{
-                      fontFamily: loadedFonts.has(entry.family) ? cssFontFamily(entry.family) : undefined,
+                      fontFamily: cssFontFamily(entry.family),
                       cursor: 'pointer',
                       padding: '8px 12px',
                       borderRadius: 4,
