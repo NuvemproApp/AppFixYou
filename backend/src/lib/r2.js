@@ -1,5 +1,5 @@
 'use strict';
-const { S3Client, PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const crypto = require('crypto');
 const path = require('path');
@@ -90,4 +90,26 @@ async function uploadToR2(buffer, originalname, mimetype, storeSerial, nuvemshop
   return key;
 }
 
-module.exports = { uploadToR2, getPresignedUrl, getPublicUrl, extractKey };
+/**
+ * Remove um objeto do R2 a partir de qualquer formato armazenado (key, URL
+ * assinada ou pública). Best-effort — nunca lança; quem chama decide se loga.
+ * Retorna true se a chamada ao R2 foi feita com sucesso (ou não havia nada
+ * pra remover), false se falhou.
+ */
+async function deleteFromR2(stored) {
+  if (!stored) return true;
+  const key = extractKey(stored);
+  if (!key) return true;
+  const bucket = process.env.R2_BUCKET_NAME;
+  if (!bucket) return false;
+  try {
+    await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+    console.log(`[r2] delete ok → ${key}`);
+    return true;
+  } catch (err) {
+    console.error('[r2] delete error:', err.message);
+    return false;
+  }
+}
+
+module.exports = { uploadToR2, getPresignedUrl, getPublicUrl, extractKey, deleteFromR2 };

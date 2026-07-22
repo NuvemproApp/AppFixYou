@@ -15,12 +15,14 @@ import {
   Tag,
   Radio,
 } from '@nimbus-ds/components';
+import { DragDotsIcon } from '@nimbus-ds/icons';
 import api from '../services/api.js';
 import ColorInput from '../components/ColorInput.jsx';
 import ImageUploadInput from '../components/ImageUploadInput.jsx';
 
 const PAGE_SIZE = 20;
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // mesmo limite do multer no backend
 
 // ─── Dropdown de ações (Editar/Excluir) — mesmo padrão usado no AlugueMais ───
 function ActionsMenu({ onEdit, onDelete, labelEdit, labelDelete }) {
@@ -37,7 +39,7 @@ function ActionsMenu({ onEdit, onDelete, labelEdit, labelDelete }) {
   }, [open]);
 
   return (
-    <Box ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
+    <Box ref={ref} position="relative" display="inline-flex">
       <Button size="small" appearance="neutral" onClick={() => setOpen((v) => !v)}>
         Ações ▾
       </Button>
@@ -48,7 +50,12 @@ function ActionsMenu({ onEdit, onDelete, labelEdit, labelDelete }) {
           borderStyle="solid"
           borderWidth="1"
           borderRadius="2"
-          style={{ position: 'absolute', right: 0, top: '110%', zIndex: 50, minWidth: 130, boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }}
+          boxShadow="2"
+          position="absolute"
+          right="0"
+          top="110%"
+          zIndex="500"
+          minWidth="130px"
         >
           <Box display="flex" flexDirection="column" padding="1" gap="1">
             <Button appearance="transparent" size="small" onClick={() => { onEdit(); setOpen(false); }}>
@@ -64,12 +71,16 @@ function ActionsMenu({ onEdit, onDelete, labelEdit, labelDelete }) {
   );
 }
 
+// Nimbus Box não repassa a prop "style" bruta — só suporta CSS via props
+// próprias por propriedade (display, position, etc.) com valores de token.
+// Cor arbitrária (hex do usuário) e background-image não têm prop de token
+// equivalente, então esses swatches usam <div> nativo em vez de <Box>.
 function ColorSwatch({ value }) {
   const colors = Array.isArray(value) ? value : [value];
   return (
     <Box display="flex" gap="1">
       {colors.map((c, i) => (
-        <Box
+        <div
           key={i}
           style={{
             width: 20,
@@ -81,6 +92,25 @@ function ColorSwatch({ value }) {
         />
       ))}
     </Box>
+  );
+}
+
+// Pattern é usado como preenchimento repetido — mostra em mosaico em vez de
+// uma imagem única contida, pra dar a real ideia de como ele fica aplicado.
+function PatternSwatch({ src, alt }) {
+  return (
+    <div
+      style={{
+        width: 32,
+        height: 32,
+        border: '1px solid rgba(0,0,0,0.15)',
+        borderRadius: 4,
+        backgroundImage: `url(${src})`,
+        backgroundRepeat: 'repeat',
+        backgroundSize: '12px 12px',
+      }}
+      title={alt}
+    />
   );
 }
 
@@ -120,6 +150,12 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
   const [form, setForm] = useState(() => emptyForm(valueType, colorCount));
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [draggedId, setDraggedId] = useState(null);
+
+  // Reordenar por arraste só faz sentido vendo a lista completa e em ordem
+  // real — desliga com busca ativa ou mais de 1 página, pra não escrever uma
+  // posicao sequencial que não reflita o conjunto todo.
+  const canReorder = !search && pageCount <= 1 && items.length > 1;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -180,11 +216,39 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
     }
   }
 
+  function handleDragOver(e) {
+    e.preventDefault();
+  }
+
+  async function handleDrop(targetId) {
+    const fromId = draggedId;
+    setDraggedId(null);
+    if (fromId === null || fromId === targetId) return;
+
+    const fromIndex = items.findIndex((i) => i.id === fromId);
+    const toIndex = items.findIndex((i) => i.id === targetId);
+    if (fromIndex === -1 || toIndex === -1) return;
+
+    const reordered = [...items];
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, moved);
+    setItems(reordered);
+
+    try {
+      await api.put('/api/personalizations/reorder', { categoria, order: reordered.map((i) => i.id) });
+      setItems(reordered.map((i, idx) => ({ ...i, posicao: idx + 1 })));
+    } catch {
+      setError(t('personalizationItems.errorReorder'));
+      await loadItems(page, search);
+    }
+  }
+
   function validate() {
     if (mode !== 'create') return null;
     if (!form.titulo.trim()) return t('personalizationItems.requiredTitulo');
     if (valueType === 'image') {
       if (!form.imagemFile) return t('personalizationItems.requiredImagem');
+      if (form.imagemFile.size > MAX_IMAGE_SIZE) return t('personalizationItems.imagemTooLarge');
       return null;
     }
     const colors = colorCount === 1 ? [form.valor] : form.valor;
@@ -245,7 +309,7 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
             </Button>
           </Box>
 
-          <Box style={{ maxWidth: 360 }}>
+          <Box maxWidth="360px">
             <Input
               placeholder={t('personalizationItems.searchPlaceholder', { categoria: categoriaSingular })}
               value={searchInput}
@@ -278,10 +342,11 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
               </Text>
             </Box>
           ) : (
-            <Box style={{ overflowX: 'auto' }}>
+            <Box overflowX="auto">
               <Table>
                 <Table.Head>
                   <Table.Row>
+                    {canReorder && <Table.Cell as="th" />}
                     <Table.Cell as="th">{t('personalizationItems.colPosicao')}</Table.Cell>
                     <Table.Cell as="th">{t('personalizationItems.colTitulo')}</Table.Cell>
                     <Table.Cell as="th">{t('personalizationItems.colValor')}</Table.Cell>
@@ -291,7 +356,21 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
                 </Table.Head>
                 <Table.Body>
                   {items.map((item) => (
-                    <Table.Row key={item.id}>
+                    <Table.Row
+                      key={item.id}
+                      draggable={canReorder}
+                      onDragStart={canReorder ? () => setDraggedId(item.id) : undefined}
+                      onDragOver={canReorder ? handleDragOver : undefined}
+                      onDrop={canReorder ? () => handleDrop(item.id) : undefined}
+                      style={draggedId === item.id ? { opacity: 0.5 } : undefined}
+                    >
+                      {canReorder && (
+                        <Table.Cell>
+                          <Box cursor="grab" display="flex" title={t('personalizationItems.dragToReorder')}>
+                            <DragDotsIcon />
+                          </Box>
+                        </Table.Cell>
+                      )}
                       <Table.Cell>
                         <Text>{item.posicao}</Text>
                       </Table.Cell>
@@ -300,11 +379,15 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
                       </Table.Cell>
                       <Table.Cell>
                         {valueType === 'image' ? (
-                          <img
-                            src={item.valor}
-                            alt={item.titulo}
-                            style={{ width: 32, height: 32, objectFit: 'contain' }}
-                          />
+                          categoria === 'patterns' ? (
+                            <PatternSwatch src={item.valor} alt={item.titulo} />
+                          ) : (
+                            <img
+                              src={item.valor}
+                              alt={item.titulo}
+                              style={{ width: 32, height: 32, objectFit: 'contain' }}
+                            />
+                          )
                         ) : (
                           <ColorSwatch value={item.valor} />
                         )}
@@ -375,6 +458,7 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
                       file={form.imagemFile}
                       onChange={(f) => setForm((prev) => ({ ...prev, imagemFile: f }))}
                       accept={imageAccept}
+                      tiled={categoria === 'patterns'}
                     />
                     <Alert appearance="primary" title={t(`personalizacoes.categorias.${categoria}.uploadHint.title`)}>
                       <Box display="flex" flexDirection="column" gap="1">

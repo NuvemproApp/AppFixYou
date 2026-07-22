@@ -1,10 +1,11 @@
 const express = require('express');
 const multer = require('multer');
+const sharp = require('sharp');
 const prisma = require('../lib/prisma');
 const { AppError } = require('../lib/errors');
 const { requireAuth } = require('../middleware/auth');
 const { parsePagination, paginatedResponse } = require('../lib/paginate');
-const { uploadToR2, getPublicUrl } = require('../lib/r2');
+const { uploadToR2, getPublicUrl, deleteFromR2 } = require('../lib/r2');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -21,9 +22,9 @@ const CONJUNTO_DE_CORES_SIZE = 4;
 // Categorias cujo valor é uma imagem enviada (URL pública do R2), em vez de
 // uma cor. Cada uma pode ter seu próprio formato exigido.
 const IMAGE_CATEGORIAS = {
-  icones: { mimetypes: ['image/png'] },
-  imagensDeFundo: { mimetypes: ['image/png', 'image/jpeg'] },
-  patterns: { mimetypes: ['image/png', 'image/jpeg'] },
+  icones: { mimetypes: ['image/png'], width: 80, height: 80 },
+  imagensDeFundo: { mimetypes: ['image/png', 'image/jpeg'], width: 1200, height: 1200 },
+  patterns: { mimetypes: ['image/png', 'image/jpeg'], width: 1000, height: 925 },
 };
 
 // Título e Valor são imutáveis após a criação (mesma regra do legado, aplicada
@@ -103,6 +104,16 @@ router.post('/', upload.single('imagem'), async (req, res, next) => {
       if (!imageConfig.mimetypes.includes(req.file.mimetype)) {
         throw new AppError(`A imagem deve estar em um destes formatos: ${imageConfig.mimetypes.join(', ')}.`, 400, 'INVALID_IMAGE_FORMAT');
       }
+
+      const { width, height } = await sharp(req.file.buffer).metadata();
+      if (width !== imageConfig.width || height !== imageConfig.height) {
+        throw new AppError(
+          `A imagem deve ter exatamente ${imageConfig.width}x${imageConfig.height}px (enviada: ${width}x${height}px).`,
+          400,
+          'INVALID_IMAGE_DIMENSIONS'
+        );
+      }
+
       const key = await uploadToR2(req.file.buffer, req.file.originalname, req.file.mimetype, req.store.id, req.store.nuvemshopId);
       valorValidado = getPublicUrl(key);
       if (!valorValidado) throw new AppError('Falha ao gerar a URL pública da imagem.', 500, 'R2_PUBLIC_URL_MISSING');
@@ -121,6 +132,39 @@ router.post('/', upload.single('imagem'), async (req, res, next) => {
     });
 
     res.status(201).json(item);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ─── PUT /api/personalizations/reorder ── bulk-atualiza posicao ────────────
+// Precisa vir ANTES de /:id, senão "reorder" seria capturado como um id.
+router.put('/reorder', async (req, res, next) => {
+  try {
+    const { categoria, order } = req.body;
+    if (!categoria) throw new AppError('categoria é obrigatória.', 400, 'MISSING_CATEGORIA');
+    if (!Array.isArray(order) || order.length === 0) {
+      throw new AppError('order deve ser um array de ids.', 400, 'INVALID_ORDER');
+    }
+
+    const ids = order.map(Number);
+    if (ids.some((id) => !Number.isFinite(id))) {
+      throw new AppError('order contém um id inválido.', 400, 'INVALID_ORDER');
+    }
+
+    const owned = await prisma.personalizationItem.findMany({
+      where: { id: { in: ids }, storeId: req.store.id, categoria: String(categoria) },
+      select: { id: true },
+    });
+    if (owned.length !== ids.length) {
+      throw new AppError('Um ou mais itens não pertencem a esta loja/categoria.', 400, 'INVALID_ORDER');
+    }
+
+    await prisma.$transaction(
+      ids.map((id, index) => prisma.personalizationItem.update({ where: { id }, data: { posicao: index + 1 } }))
+    );
+
+    res.json({ ok: true });
   } catch (err) {
     next(err);
   }
@@ -153,10 +197,17 @@ router.put('/:id', async (req, res, next) => {
 });
 
 // ─── DELETE /api/personalizations/:id ── remove (hard delete) ──────────────
+// Categorias de imagem: apaga o objeto no R2 depois do delete no banco ter
+// sucesso (best-effort — não falha o request se o R2 der erro).
 router.delete('/:id', async (req, res, next) => {
   try {
-    await findOwnedItem(req.store.id, req.params.id);
+    const item = await findOwnedItem(req.store.id, req.params.id);
     await prisma.personalizationItem.delete({ where: { id: Number(req.params.id) } });
+
+    if (IMAGE_CATEGORIAS[item.categoria]) {
+      deleteFromR2(item.valor).catch((err) => console.error('[personalizations] falha ao apagar imagem do R2:', err.message));
+    }
+
     res.status(204).end();
   } catch (err) {
     next(err);

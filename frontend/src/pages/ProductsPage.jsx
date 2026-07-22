@@ -116,7 +116,7 @@ export default function ProductsPage() {
           <Title as="h2">{t('dashboard.title')}</Title>
           <Title as="h3">{t('products.title')}</Title>
 
-          <Box style={{ maxWidth: 360 }}>
+          <Box maxWidth="360px">
             <Input
               placeholder={t('products.searchPlaceholder')}
               value={searchInput}
@@ -149,7 +149,7 @@ export default function ProductsPage() {
               </Text>
             </Box>
           ) : (
-            <Box style={{ overflowX: 'auto' }}>
+            <Box overflowX="auto">
               <Table>
                 <Table.Head>
                   <Table.Row>

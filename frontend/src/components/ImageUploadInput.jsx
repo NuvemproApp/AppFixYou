@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Box, Text, Button } from '@nimbus-ds/components';
 import { useTranslation } from 'react-i18next';
 
-export default function ImageUploadInput({ file, onChange, accept = 'image/png' }) {
+export default function ImageUploadInput({ file, onChange, accept = 'image/png', tiled = false }) {
   const { t } = useTranslation();
   const inputRef = useRef(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -32,13 +32,25 @@ export default function ImageUploadInput({ file, onChange, accept = 'image/png' 
         onChange={(e) => onChange(e.target.files?.[0] || null)}
         style={{ display: 'none' }}
       />
-      {previewUrl && (
+      {previewUrl && (tiled ? (
+        <div
+          style={{
+            width: 72,
+            height: 72,
+            border: '1px solid #d1d5db',
+            borderRadius: 4,
+            backgroundImage: `url(${previewUrl})`,
+            backgroundRepeat: 'repeat',
+            backgroundSize: '24px 24px',
+          }}
+        />
+      ) : (
         <img
           src={previewUrl}
           alt=""
-          style={{ width: 40, height: 40, objectFit: 'contain', border: '1px solid #d1d5db', borderRadius: 4 }}
+          style={{ width: 72, height: 72, objectFit: 'contain', border: '1px solid #d1d5db', borderRadius: 4 }}
         />
-      )}
+      ))}
     </Box>
   );
 }
