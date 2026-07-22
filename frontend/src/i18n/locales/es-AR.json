@@ -225,7 +225,17 @@
     "categorias": {
       "fontes": { "title": "Fuentes", "action": "Ver todas" },
       "coresDeFonte": { "title": "Colores de fuente", "titleSingular": "color de fuente", "action": "Ver todos" },
-      "icones": { "title": "\u00cdconos", "action": "Ver todos" },
+      "icones": {
+        "title": "\u00cdconos",
+        "titleSingular": "\u00edcono",
+        "action": "Ver todos",
+        "uploadHint": {
+          "title": "\u00a1ATENCI\u00d3N! Indicaciones para subir el \u00edcono:",
+          "format": "Formato: .png - fondo transparente",
+          "dimensions": "Dimensiones: 80px de ancho x 80px de alto",
+          "density": "Densidad: 96 dpi"
+        }
+      },
       "imagensDeFundo": { "title": "Im\u00e1genes de fondo", "action": "Ver todas" },
       "conjuntosDeCores": { "title": "Conjuntos de colores", "titleSingular": "conjunto de colores", "action": "Ver todos" },
       "patterns": { "title": "Patrones", "action": "Ver todos" }
@@ -258,7 +268,11 @@
     "fieldSituacao": "Situaci\u00f3n",
     "fieldPosicao": "Posici\u00f3n",
     "requiredTitulo": "Ingres\u00e1 un t\u00edtulo.",
-    "invalidCor": "Eleg\u00ed colores v\u00e1lidos antes de guardar."
+    "invalidCor": "Eleg\u00ed colores v\u00e1lidos antes de guardar.",
+    "fieldImagem": "Imagen",
+    "chooseFile": "Elegir archivo",
+    "noFileChosen": "Ning\u00fan archivo seleccionado",
+    "requiredImagem": "Seleccion\u00e1 una imagen."
   },
   "settings": {
     "title": "Configuraci\u00f3n",

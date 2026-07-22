@@ -1,14 +1,26 @@
 const express = require('express');
+const multer = require('multer');
 const prisma = require('../lib/prisma');
 const { AppError } = require('../lib/errors');
 const { requireAuth } = require('../middleware/auth');
 const { parsePagination, paginatedResponse } = require('../lib/paginate');
+const { uploadToR2, getPublicUrl } = require('../lib/r2');
 
 const router = express.Router();
 router.use(requireAuth);
 
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 2 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => cb(null, /^image\//.test(file.mimetype)),
+});
+
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
 const CONJUNTO_DE_CORES_SIZE = 4;
+
+// Categorias cujo valor é uma imagem enviada (URL pública do R2), em vez de
+// uma cor. Cada uma pode ter seu próprio formato exigido.
+const IMAGE_CATEGORIAS = { icones: { mimetype: 'image/png' } };
 
 // Título e Valor são imutáveis após a criação (mesma regra do legado, aplicada
 // no update abaixo) — só a validação de criação precisa conhecer o formato.
@@ -69,14 +81,30 @@ router.get('/', async (req, res, next) => {
 });
 
 // ─── POST /api/personalizations ── cria um item ──────────────────────────────
-router.post('/', async (req, res, next) => {
+// Categorias de imagem chegam como multipart/form-data (campo "imagem"); as
+// demais continuam JSON puro — o multer não interfere quando o Content-Type
+// não é multipart, então as duas formas convivem na mesma rota.
+router.post('/', upload.single('imagem'), async (req, res, next) => {
   try {
-    const { categoria, titulo, valor, posicao } = req.body;
+    const { categoria, titulo, posicao } = req.body;
 
     if (!titulo || !String(titulo).trim()) {
       throw new AppError('titulo é obrigatório.', 400, 'MISSING_TITULO');
     }
-    const valorValidado = validateValor(categoria, valor);
+
+    let valorValidado;
+    const imageConfig = IMAGE_CATEGORIAS[categoria];
+    if (imageConfig) {
+      if (!req.file) throw new AppError('imagem é obrigatória.', 400, 'MISSING_IMAGEM');
+      if (req.file.mimetype !== imageConfig.mimetype) {
+        throw new AppError(`A imagem deve estar no formato ${imageConfig.mimetype}.`, 400, 'INVALID_IMAGE_FORMAT');
+      }
+      const key = await uploadToR2(req.file.buffer, req.file.originalname, req.file.mimetype, req.store.id, req.store.nuvemshopId);
+      valorValidado = getPublicUrl(key);
+      if (!valorValidado) throw new AppError('Falha ao gerar a URL pública da imagem.', 500, 'R2_PUBLIC_URL_MISSING');
+    } else {
+      valorValidado = validateValor(categoria, req.body.valor);
+    }
 
     const item = await prisma.personalizationItem.create({
       data: {

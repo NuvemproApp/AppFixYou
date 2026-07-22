@@ -15,8 +15,9 @@ const CATEGORIA_POR_SLUG = {
 
 // Categorias com tela real implementada — as demais caem no placeholder.
 const IMPLEMENTED_SLUGS = {
-  'cores-de-fonte': { categoria: 'coresDeFonte', colorCount: 1 },
-  'conjuntos-de-cores': { categoria: 'conjuntosDeCores', colorCount: 4 },
+  'cores-de-fonte': { categoria: 'coresDeFonte', valueType: 'color', colorCount: 1 },
+  'conjuntos-de-cores': { categoria: 'conjuntosDeCores', valueType: 'color', colorCount: 4 },
+  icones: { categoria: 'icones', valueType: 'image' },
 };
 
 export default function PersonalizationCategoryPage() {
@@ -26,7 +27,13 @@ export default function PersonalizationCategoryPage() {
   const implemented = IMPLEMENTED_SLUGS[slug];
 
   if (implemented) {
-    return <PersonalizationListPage categoria={implemented.categoria} colorCount={implemented.colorCount} />;
+    return (
+      <PersonalizationListPage
+        categoria={implemented.categoria}
+        valueType={implemented.valueType}
+        colorCount={implemented.colorCount}
+      />
+    );
   }
 
   return (

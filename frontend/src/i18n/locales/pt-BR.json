@@ -229,7 +229,17 @@
     "categorias": {
       "fontes": { "title": "Fontes", "action": "Ver todas" },
       "coresDeFonte": { "title": "Cores de fonte", "titleSingular": "cor de fonte", "action": "Ver todas" },
-      "icones": { "title": "Ícones", "action": "Ver todos" },
+      "icones": {
+        "title": "Ícones",
+        "titleSingular": "ícone",
+        "action": "Ver todos",
+        "uploadHint": {
+          "title": "ATENÇÃO! Orientações para o upload do ícone:",
+          "format": "Formato: .png - fundo transparente",
+          "dimensions": "Dimensões: 80px de comprimento x 80px de altura",
+          "density": "Densidade: 96 dpi"
+        }
+      },
       "imagensDeFundo": { "title": "Imagens de fundo", "action": "Ver todas" },
       "conjuntosDeCores": { "title": "Conjuntos de cores", "titleSingular": "conjunto de cores", "action": "Ver todos" },
       "patterns": { "title": "Patterns", "action": "Ver todos" }
@@ -262,7 +272,11 @@
     "fieldSituacao": "Situação",
     "fieldPosicao": "Posição",
     "requiredTitulo": "Informe um título.",
-    "invalidCor": "Escolha cores válidas antes de salvar."
+    "invalidCor": "Escolha cores válidas antes de salvar.",
+    "fieldImagem": "Imagem",
+    "chooseFile": "Escolher arquivo",
+    "noFileChosen": "Nenhum arquivo escolhido",
+    "requiredImagem": "Selecione uma imagem."
   },
   "settings": {
     "title": "Configura\u00e7\u00f5es",

@@ -17,6 +17,7 @@ import {
 } from '@nimbus-ds/components';
 import api from '../services/api.js';
 import ColorInput from '../components/ColorInput.jsx';
+import ImageUploadInput from '../components/ImageUploadInput.jsx';
 
 const PAGE_SIZE = 20;
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
@@ -83,7 +84,10 @@ function ColorSwatch({ value }) {
   );
 }
 
-function emptyForm(colorCount) {
+function emptyForm(valueType, colorCount) {
+  if (valueType === 'image') {
+    return { titulo: '', imagemFile: null, ativo: true, posicao: '' };
+  }
   return {
     titulo: '',
     valor: colorCount === 1 ? '#000000' : Array.from({ length: colorCount }, () => '#000000'),
@@ -93,10 +97,11 @@ function emptyForm(colorCount) {
 }
 
 // Tela genérica de gestão de um catálogo de personalização (Cores de Fonte,
-// Conjuntos de Cores, etc.) — Título e Valor são imutáveis após a criação
-// (mesma regra do legado, replicada no backend): o modal de edição só mostra
-// Situação e Posição.
-export default function PersonalizationListPage({ categoria, colorCount }) {
+// Conjuntos de Cores, Ícones, etc.) — Título e Valor são imutáveis após a
+// criação (mesma regra do legado, replicada no backend): o modal de edição só
+// mostra Situação e Posição. `valueType` decide se o valor é cor(es) ou uma
+// imagem enviada (URL do R2 após upload).
+export default function PersonalizationListPage({ categoria, valueType = 'color', colorCount }) {
   const { t } = useTranslation();
   const categoriaLabel = t(`personalizacoes.categorias.${categoria}.title`);
   const categoriaSingular = t(`personalizacoes.categorias.${categoria}.titleSingular`);
@@ -112,7 +117,7 @@ export default function PersonalizationListPage({ categoria, colorCount }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [mode, setMode] = useState('create'); // create | edit
   const [editingId, setEditingId] = useState(null);
-  const [form, setForm] = useState(() => emptyForm(colorCount));
+  const [form, setForm] = useState(() => emptyForm(valueType, colorCount));
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
 
@@ -147,7 +152,7 @@ export default function PersonalizationListPage({ categoria, colorCount }) {
   function openCreate() {
     setMode('create');
     setEditingId(null);
-    setForm(emptyForm(colorCount));
+    setForm(emptyForm(valueType, colorCount));
     setSaveError('');
     setModalOpen(true);
   }
@@ -155,7 +160,7 @@ export default function PersonalizationListPage({ categoria, colorCount }) {
   function openEdit(item) {
     setMode('edit');
     setEditingId(item.id);
-    setForm({ titulo: item.titulo, valor: item.valor, ativo: item.ativo, posicao: String(item.posicao ?? '') });
+    setForm({ ...emptyForm(valueType, colorCount), ativo: item.ativo, posicao: String(item.posicao ?? '') });
     setSaveError('');
     setModalOpen(true);
   }
@@ -178,6 +183,10 @@ export default function PersonalizationListPage({ categoria, colorCount }) {
   function validate() {
     if (mode !== 'create') return null;
     if (!form.titulo.trim()) return t('personalizationItems.requiredTitulo');
+    if (valueType === 'image') {
+      if (!form.imagemFile) return t('personalizationItems.requiredImagem');
+      return null;
+    }
     const colors = colorCount === 1 ? [form.valor] : form.valor;
     if (!colors.every((c) => HEX_RE.test(c))) return t('personalizationItems.invalidCor');
     return null;
@@ -195,12 +204,21 @@ export default function PersonalizationListPage({ categoria, colorCount }) {
     try {
       const posicao = form.posicao === '' ? 0 : Number(form.posicao);
       if (mode === 'create') {
-        await api.post('/api/personalizations', {
-          categoria,
-          titulo: form.titulo.trim(),
-          valor: form.valor,
-          posicao,
-        });
+        if (valueType === 'image') {
+          const fd = new FormData();
+          fd.append('categoria', categoria);
+          fd.append('titulo', form.titulo.trim());
+          fd.append('posicao', String(posicao));
+          fd.append('imagem', form.imagemFile);
+          await api.post('/api/personalizations', fd, { headers: { 'Content-Type': undefined } });
+        } else {
+          await api.post('/api/personalizations', {
+            categoria,
+            titulo: form.titulo.trim(),
+            valor: form.valor,
+            posicao,
+          });
+        }
       } else {
         await api.put(`/api/personalizations/${editingId}`, { ativo: form.ativo, posicao });
       }
@@ -281,7 +299,15 @@ export default function PersonalizationListPage({ categoria, colorCount }) {
                         <Text fontWeight="bold">{item.titulo}</Text>
                       </Table.Cell>
                       <Table.Cell>
-                        <ColorSwatch value={item.valor} />
+                        {valueType === 'image' ? (
+                          <img
+                            src={item.valor}
+                            alt={item.titulo}
+                            style={{ width: 32, height: 32, objectFit: 'contain' }}
+                          />
+                        ) : (
+                          <ColorSwatch value={item.valor} />
+                        )}
                       </Table.Cell>
                       <Table.Cell>
                         <Tag appearance={item.ativo ? 'success' : 'danger'}>
@@ -340,30 +366,49 @@ export default function PersonalizationListPage({ categoria, colorCount }) {
                   />
                 </Box>
 
-                <Box display="flex" flexDirection="column" gap="1">
-                  <Text fontWeight="bold" fontSize="caption">
-                    {colorCount === 1 ? t('personalizationItems.fieldCor') : t('personalizationItems.fieldCores')}
-                  </Text>
-                  {colorCount === 1 ? (
-                    <ColorInput value={form.valor} onChange={(v) => setForm((f) => ({ ...f, valor: v }))} />
-                  ) : (
-                    <Box display="flex" gap="2" flexWrap="wrap">
-                      {form.valor.map((c, i) => (
-                        <ColorInput
-                          key={i}
-                          value={c}
-                          onChange={(v) =>
-                            setForm((f) => {
-                              const valor = [...f.valor];
-                              valor[i] = v;
-                              return { ...f, valor };
-                            })
-                          }
-                        />
-                      ))}
-                    </Box>
-                  )}
-                </Box>
+                {valueType === 'image' ? (
+                  <Box display="flex" flexDirection="column" gap="2">
+                    <Text fontWeight="bold" fontSize="caption">
+                      {t('personalizationItems.fieldImagem')}
+                    </Text>
+                    <ImageUploadInput
+                      file={form.imagemFile}
+                      onChange={(f) => setForm((prev) => ({ ...prev, imagemFile: f }))}
+                    />
+                    <Alert appearance="primary" title={t(`personalizacoes.categorias.${categoria}.uploadHint.title`)}>
+                      <Box display="flex" flexDirection="column" gap="1">
+                        <Text>• {t(`personalizacoes.categorias.${categoria}.uploadHint.format`)}</Text>
+                        <Text>• {t(`personalizacoes.categorias.${categoria}.uploadHint.dimensions`)}</Text>
+                        <Text>• {t(`personalizacoes.categorias.${categoria}.uploadHint.density`)}</Text>
+                      </Box>
+                    </Alert>
+                  </Box>
+                ) : (
+                  <Box display="flex" flexDirection="column" gap="1">
+                    <Text fontWeight="bold" fontSize="caption">
+                      {colorCount === 1 ? t('personalizationItems.fieldCor') : t('personalizationItems.fieldCores')}
+                    </Text>
+                    {colorCount === 1 ? (
+                      <ColorInput value={form.valor} onChange={(v) => setForm((f) => ({ ...f, valor: v }))} />
+                    ) : (
+                      <Box display="flex" gap="2" flexWrap="wrap">
+                        {form.valor.map((c, i) => (
+                          <ColorInput
+                            key={i}
+                            value={c}
+                            onChange={(v) =>
+                              setForm((f) => {
+                                const valor = [...f.valor];
+                                valor[i] = v;
+                                return { ...f, valor };
+                              })
+                            }
+                          />
+                        ))}
+                      </Box>
+                    )}
+                  </Box>
+                )}
               </>
             )}
 
