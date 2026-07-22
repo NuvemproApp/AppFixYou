@@ -133,4 +133,18 @@ async function deleteFromR2(stored) {
   }
 }
 
-module.exports = { uploadToR2, uploadRaw, getPresignedUrl, getPublicUrl, extractKey, deleteFromR2, APP_PREFIX };
+/**
+ * Busca um objeto do R2 pra fazer proxy através do próprio backend (stream).
+ * Usado pelo catálogo de fontes: o bucket público (pub-*.r2.dev) não tem
+ * CORS configurado e o token de API atual só tem permissão de objeto, não
+ * de admin do bucket (necessária pra configurar CORS lá) — servir através
+ * do nosso próprio Express contorna isso, já que o CORS já está configurado
+ * aqui pro FRONTEND_URL.
+ */
+async function getObject(key) {
+  const bucket = process.env.R2_BUCKET_NAME;
+  if (!bucket) throw new Error('[r2] R2_BUCKET_NAME ausente');
+  return client.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+}
+
+module.exports = { uploadToR2, uploadRaw, getPresignedUrl, getPublicUrl, extractKey, deleteFromR2, getObject, APP_PREFIX };

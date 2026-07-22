@@ -41,7 +41,12 @@ app.use(cors({
 const webhookRouter = require('./routes/webhook');
 app.use('/webhook', express.raw({ type: 'application/json' }), webhookRouter);
 
-// ─── Rate limiter (global) — aplicado após o webhook Stripe
+// ─── Proxy de arquivo de fonte: ANTES do rate limit global (o picker carrega
+// ~50 arquivos de uma vez ao abrir — ver comentário em routes/fontFile.js).
+const fontFileRouter = require('./routes/fontFile');
+app.use('/api/font-catalog/file', fontFileRouter);
+
+// ─── Rate limiter (global) — aplicado após o webhook Stripe e o proxy de fonte
 app.use(globalLimiter);
 
 // ─── Body parsing (após o webhook). O `verify` captura o raw body, usado para
