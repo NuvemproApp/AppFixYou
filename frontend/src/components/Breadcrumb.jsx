@@ -1,26 +1,28 @@
 import React from 'react';
-import { Box, Text, Link } from '@nimbus-ds/components';
+import { Box, Text } from '@nimbus-ds/components';
 
-// Breadcrumb simples, sem lib pronta (Nimbus DS não tem componente Breadcrumb
-// nesta versão) — cada item clicável usa Link+onClick (mesmo padrão de
-// navegação já usado no resto do app, nunca href real), o último item
-// (página atual) é só texto.
+// Breadcrumb — replica o padrão já estabelecido no PromoHero/AlugueMais/
+// SuperCampos (o mesmo bloco JSX aparece duplicado em cada página desses 3
+// apps; aqui é extraído como componente reutilizável, mas o markup renderizado
+// é idêntico): item clicável = Text as="span" color="primary-interactive"
+// cursor="pointer", separador = Text " / " em neutral-textDisabled, item
+// atual (não clicável) = Text as="span" color="neutral-textLow", sem negrito.
 export default function Breadcrumb({ items }) {
   return (
-    <Box display="flex" alignItems="center" gap="1" flexWrap="wrap">
+    <Box display="flex" alignItems="center" gap="1">
       {items.map((item, i) => (
-        <Box key={i} display="flex" alignItems="center" gap="1">
-          {i > 0 && <Text color="neutral-textLow">/</Text>}
+        <React.Fragment key={i}>
+          {i > 0 && <Text as="span" color="neutral-textDisabled"> / </Text>}
           {item.onClick ? (
-            <Link as="button" onClick={item.onClick}>
+            <Text as="span" color="primary-interactive" cursor="pointer" onClick={item.onClick}>
               {item.label}
-            </Link>
+            </Text>
           ) : (
-            <Text color="neutral-textLow" fontWeight="bold">
+            <Text as="span" color="neutral-textLow">
               {item.label}
             </Text>
           )}
-        </Box>
+        </React.Fragment>
       ))}
     </Box>
   );
