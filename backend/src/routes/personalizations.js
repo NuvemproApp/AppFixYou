@@ -53,6 +53,18 @@ function validateValor(categoria, valor) {
   throw new AppError('categoria não suportada.', 400, 'INVALID_CATEGORIA');
 }
 
+// Fontes não são upload do lojista — são uma referência a um item do
+// catálogo global (FontCatalogItem), curado pela Nuvempro.
+async function resolveFonteValor(fontCatalogItemId) {
+  const id = Number(fontCatalogItemId);
+  if (!Number.isFinite(id) || id <= 0) {
+    throw new AppError('fontCatalogItemId inválido.', 400, 'INVALID_VALOR');
+  }
+  const exists = await prisma.fontCatalogItem.findUnique({ where: { id } });
+  if (!exists) throw new AppError('Fonte não encontrada no catálogo.', 400, 'INVALID_VALOR');
+  return { fontCatalogItemId: id };
+}
+
 async function findOwnedItem(storeId, id) {
   const item = await prisma.personalizationItem.findFirst({ where: { id: Number(id), storeId } });
   if (!item) throw new AppError('Item de personalização não encontrado.', 404, 'ITEM_NOT_FOUND');
@@ -79,7 +91,24 @@ router.get('/', async (req, res, next) => {
       prisma.personalizationItem.count({ where }),
     ]);
 
-    res.json(paginatedResponse(items, total, { page, limit }));
+    let enrichedItems = items;
+    if (String(categoria) === 'fontes') {
+      const ids = items.map((i) => i.valor?.fontCatalogItemId).filter((id) => Number.isFinite(id));
+      const catalogItems = ids.length
+        ? await prisma.fontCatalogItem.findMany({ where: { id: { in: ids } } })
+        : [];
+      const catalogMap = new Map(catalogItems.map((c) => [c.id, c]));
+      enrichedItems = items.map((i) => {
+        const catalogItem = catalogMap.get(i.valor?.fontCatalogItemId);
+        return {
+          ...i,
+          fontFamily: catalogItem?.family ?? null,
+          fontWebfontUrl: catalogItem ? getPublicUrl(catalogItem.webfontKey) : null,
+        };
+      });
+    }
+
+    res.json(paginatedResponse(enrichedItems, total, { page, limit }));
   } catch (err) {
     next(err);
   }
@@ -117,6 +146,8 @@ router.post('/', upload.single('imagem'), async (req, res, next) => {
       const key = await uploadToR2(req.file.buffer, req.file.originalname, req.file.mimetype, req.store.id, req.store.nuvemshopId);
       valorValidado = getPublicUrl(key);
       if (!valorValidado) throw new AppError('Falha ao gerar a URL pública da imagem.', 500, 'R2_PUBLIC_URL_MISSING');
+    } else if (categoria === 'fontes') {
+      valorValidado = await resolveFonteValor(req.body.fontCatalogItemId);
     } else {
       valorValidado = validateValor(categoria, req.body.valor);
     }

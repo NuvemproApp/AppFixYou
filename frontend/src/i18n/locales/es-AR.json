@@ -223,7 +223,7 @@
   "personalizacoes": {
     "title": "Personalizaciones",
     "categorias": {
-      "fontes": { "title": "Fuentes", "action": "Ver todas" },
+      "fontes": { "title": "Fuentes", "titleSingular": "fuente", "action": "Ver todas" },
       "coresDeFonte": { "title": "Colores de fuente", "titleSingular": "color de fuente", "action": "Ver todos" },
       "icones": {
         "title": "\u00cdconos",
@@ -295,7 +295,12 @@
     "fieldImagem": "Imagen",
     "chooseFile": "Elegir archivo",
     "noFileChosen": "Ning\u00fan archivo seleccionado",
-    "requiredImagem": "Seleccion\u00e1 una imagen."
+    "requiredImagem": "Seleccion\u00e1 una imagen.",
+    "fieldFonte": "Fuente",
+    "requiredFonte": "Seleccion\u00e1 una fuente.",
+    "selectFontPlaceholder": "Seleccionar fuente",
+    "searchFontPlaceholder": "Buscar fuente...",
+    "noFontsFound": "No se encontraron fuentes."
   },
   "settings": {
     "title": "Configuraci\u00f3n",

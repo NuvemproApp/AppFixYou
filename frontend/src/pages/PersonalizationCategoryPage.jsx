@@ -15,6 +15,7 @@ const CATEGORIA_POR_SLUG = {
 
 // Categorias com tela real implementada — as demais caem no placeholder.
 const IMPLEMENTED_SLUGS = {
+  fontes: { categoria: 'fontes', valueType: 'font' },
   'cores-de-fonte': { categoria: 'coresDeFonte', valueType: 'color', colorCount: 1 },
   'conjuntos-de-cores': { categoria: 'conjuntosDeCores', valueType: 'color', colorCount: 4 },
   icones: { categoria: 'icones', valueType: 'image', imageAccept: 'image/png' },

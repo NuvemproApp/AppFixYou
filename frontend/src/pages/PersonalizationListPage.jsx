@@ -19,6 +19,8 @@ import { DragDotsIcon } from '@nimbus-ds/icons';
 import api from '../services/api.js';
 import ColorInput from '../components/ColorInput.jsx';
 import ImageUploadInput from '../components/ImageUploadInput.jsx';
+import FontPicker from '../components/FontPicker.jsx';
+import { registerFont } from '../lib/fontRegistry.js';
 
 const PAGE_SIZE = 20;
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
@@ -118,6 +120,9 @@ function emptyForm(valueType, colorCount) {
   if (valueType === 'image') {
     return { titulo: '', imagemFile: null, ativo: true, posicao: '' };
   }
+  if (valueType === 'font') {
+    return { titulo: '', fontCatalogItemId: null, ativo: true, posicao: '' };
+  }
   return {
     titulo: '',
     valor: colorCount === 1 ? '#000000' : Array.from({ length: colorCount }, () => '#000000'),
@@ -185,6 +190,13 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
     loadItems(page, search);
   }, [loadItems, page, search]);
 
+  useEffect(() => {
+    if (categoria !== 'fontes') return;
+    for (const item of items) {
+      if (item.fontFamily && item.fontWebfontUrl) registerFont(item.fontFamily, item.fontWebfontUrl);
+    }
+  }, [items, categoria]);
+
   function openCreate() {
     setMode('create');
     setEditingId(null);
@@ -246,6 +258,10 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
   function validate() {
     if (mode !== 'create') return null;
     if (!form.titulo.trim()) return t('personalizationItems.requiredTitulo');
+    if (valueType === 'font') {
+      if (!form.fontCatalogItemId) return t('personalizationItems.requiredFonte');
+      return null;
+    }
     if (valueType === 'image') {
       if (!form.imagemFile) return t('personalizationItems.requiredImagem');
       if (form.imagemFile.size > MAX_IMAGE_SIZE) return t('personalizationItems.imagemTooLarge');
@@ -275,6 +291,13 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
           fd.append('posicao', String(posicao));
           fd.append('imagem', form.imagemFile);
           await api.post('/api/personalizations', fd, { headers: { 'Content-Type': undefined } });
+        } else if (valueType === 'font') {
+          await api.post('/api/personalizations', {
+            categoria,
+            titulo: form.titulo.trim(),
+            fontCatalogItemId: form.fontCatalogItemId,
+            posicao,
+          });
         } else {
           await api.post('/api/personalizations', {
             categoria,
@@ -378,7 +401,11 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
                         <Text fontWeight="bold">{item.titulo}</Text>
                       </Table.Cell>
                       <Table.Cell>
-                        {valueType === 'image' ? (
+                        {valueType === 'font' ? (
+                          <span style={{ fontFamily: item.fontFamily || undefined, fontSize: 16 }}>
+                            {item.fontFamily || item.titulo}
+                          </span>
+                        ) : valueType === 'image' ? (
                           categoria === 'patterns' ? (
                             <PatternSwatch src={item.valor} alt={item.titulo} />
                           ) : (
@@ -449,7 +476,17 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
                   />
                 </Box>
 
-                {valueType === 'image' ? (
+                {valueType === 'font' ? (
+                  <Box display="flex" flexDirection="column" gap="1">
+                    <Text fontWeight="bold" fontSize="caption">
+                      {t('personalizationItems.fieldFonte')}
+                    </Text>
+                    <FontPicker
+                      value={form.fontCatalogItemId}
+                      onChange={(id) => setForm((f) => ({ ...f, fontCatalogItemId: id }))}
+                    />
+                  </Box>
+                ) : valueType === 'image' ? (
                   <Box display="flex" flexDirection="column" gap="2">
                     <Text fontWeight="bold" fontSize="caption">
                       {t('personalizationItems.fieldImagem')}
