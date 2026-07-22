@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Text,
@@ -15,6 +16,7 @@ import {
   Pagination,
 } from '@nimbus-ds/components';
 import api from '../services/api.js';
+import Breadcrumb from '../components/Breadcrumb.jsx';
 
 const PAGE_SIZE = 20;
 
@@ -27,6 +29,7 @@ const MODELOS = [
 
 export default function ProductsPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const [products, setProducts] = useState([]);
   const [total, setTotal] = useState(0);
@@ -113,7 +116,10 @@ export default function ProductsPage() {
     <Card>
       <Card.Body>
         <Box display="flex" flexDirection="column" gap="4">
-          <Title as="h2">{t('dashboard.title')}</Title>
+          <Breadcrumb items={[
+            { label: t('common.home'), onClick: () => navigate('/') },
+            { label: t('products.title') },
+          ]} />
           <Title as="h3">{t('products.title')}</Title>
 
           <Box maxWidth="360px">

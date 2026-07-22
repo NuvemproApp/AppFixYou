@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Card, Title } from '@nimbus-ds/components';
 import { EditIcon } from '@nimbus-ds/icons';
 import QuickLinkCard from '../components/QuickLinkCard.jsx';
+import Breadcrumb from '../components/Breadcrumb.jsx';
 
 const CATEGORIAS = ['fontes', 'coresDeFonte', 'icones', 'imagensDeFundo', 'conjuntosDeCores', 'patterns'];
 
@@ -24,7 +25,10 @@ export default function PersonalizationsPage() {
     <Card>
       <Card.Body>
         <Box display="flex" flexDirection="column" gap="4">
-          <Title as="h2">{t('dashboard.title')}</Title>
+          <Breadcrumb items={[
+            { label: t('common.home'), onClick: () => navigate('/') },
+            { label: t('personalizacoes.title') },
+          ]} />
           <Title as="h3">{t('personalizacoes.title')}</Title>
 
           <Box

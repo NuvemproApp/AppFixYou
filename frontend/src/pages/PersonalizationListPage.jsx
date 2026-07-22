@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Text,
@@ -20,6 +21,7 @@ import api from '../services/api.js';
 import ColorInput from '../components/ColorInput.jsx';
 import ImageUploadInput from '../components/ImageUploadInput.jsx';
 import FontPicker from '../components/FontPicker.jsx';
+import Breadcrumb from '../components/Breadcrumb.jsx';
 import { registerFont } from '../lib/fontRegistry.js';
 
 const PAGE_SIZE = 20;
@@ -138,6 +140,7 @@ function emptyForm(valueType, colorCount) {
 // imagem enviada (URL do R2 após upload).
 export default function PersonalizationListPage({ categoria, valueType = 'color', colorCount, imageAccept = 'image/png' }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const categoriaLabel = t(`personalizacoes.categorias.${categoria}.title`);
   const categoriaSingular = t(`personalizacoes.categorias.${categoria}.titleSingular`);
 
@@ -196,6 +199,21 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
       if (item.fontFamily && item.fontWebfontUrl) registerFont(item.fontFamily, item.fontWebfontUrl);
     }
   }, [items, categoria]);
+
+  // Pré-carrega o catálogo inteiro assim que a tela de Fontes abre — não
+  // espera o usuário clicar em "Cadastrar" pra só então começar a baixar as
+  // ~50 webfonts. Sem isso, a primeira abertura do FontPicker dispara todos
+  // os downloads de uma vez e algumas fontes aparecem no fallback por um
+  // instante até o FontFace terminar de carregar.
+  useEffect(() => {
+    if (categoria !== 'fontes') return;
+    let cancelled = false;
+    api.get('/api/font-catalog').then(({ data }) => {
+      if (cancelled) return;
+      for (const entry of data?.fonts || []) registerFont(entry.family, entry.webfontUrl);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [categoria]);
 
   async function openCreate() {
     setMode('create');
@@ -333,7 +351,11 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
         <Box display="flex" flexDirection="column" gap="4">
           <Box display="flex" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" gap="2">
             <Box display="flex" flexDirection="column" gap="1">
-              <Title as="h2">{t('dashboard.title')}</Title>
+              <Breadcrumb items={[
+                { label: t('common.home'), onClick: () => navigate('/') },
+                { label: t('personalizacoes.title'), onClick: () => navigate('/personalizacoes') },
+                { label: categoriaLabel },
+              ]} />
               <Title as="h3">{categoriaLabel}</Title>
             </Box>
             <Button appearance="primary" onClick={openCreate}>

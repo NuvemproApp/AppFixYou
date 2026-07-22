@@ -13,7 +13,9 @@
     "dashboard": "FixYou",
     "settings": "Configura\u00e7\u00f5es",
     "billing": "Planos",
-    "support": "Suporte"
+    "support": "Suporte",
+    "products": "Produtos",
+    "personalizations": "Personaliza\u00e7\u00f5es"
   },
   "terms": {
     "title": "Termos de Uso",
@@ -330,6 +332,7 @@
     "success": "Sucesso!",
     "noData": "Nenhum dado encontrado.",
     "close": "Fechar",
+    "home": "Início",
     "comingSoon": "Em breve."
   }
 }

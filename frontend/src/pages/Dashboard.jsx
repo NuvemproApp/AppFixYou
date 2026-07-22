@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Card, Title } from '@nimbus-ds/components';
 import { BoxUnpackedIcon, EditIcon } from '@nimbus-ds/icons';
 import QuickLinkCard from '../components/QuickLinkCard.jsx';
+import Breadcrumb from '../components/Breadcrumb.jsx';
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -13,6 +14,7 @@ export default function Dashboard() {
     <Card>
       <Card.Body>
         <Box display="flex" flexDirection="column" gap="4">
+          <Breadcrumb items={[{ label: t('common.home') }]} />
           <Title as="h2">{t('dashboard.title')}</Title>
 
           <Box
