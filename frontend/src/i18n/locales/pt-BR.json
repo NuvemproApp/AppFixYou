@@ -252,7 +252,17 @@
         }
       },
       "conjuntosDeCores": { "title": "Conjuntos de cores", "titleSingular": "conjunto de cores", "action": "Ver todos" },
-      "patterns": { "title": "Patterns", "action": "Ver todos" }
+      "patterns": {
+        "title": "Patterns",
+        "titleSingular": "pattern",
+        "action": "Ver todos",
+        "uploadHint": {
+          "title": "ATENÇÃO! Orientações para o upload do pattern:",
+          "format": "Formato: .png, .jpg ou .jpeg",
+          "dimensions": "Dimensões: 1000px de comprimento x 925px de altura",
+          "density": "Densidade: 72 dpi"
+        }
+      }
     }
   },
   "personalizationItems": {

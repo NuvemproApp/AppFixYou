@@ -23,6 +23,7 @@ const CONJUNTO_DE_CORES_SIZE = 4;
 const IMAGE_CATEGORIAS = {
   icones: { mimetypes: ['image/png'] },
   imagensDeFundo: { mimetypes: ['image/png', 'image/jpeg'] },
+  patterns: { mimetypes: ['image/png', 'image/jpeg'] },
 };
 
 // Título e Valor são imutáveis após a criação (mesma regra do legado, aplicada

@@ -19,6 +19,7 @@ const IMPLEMENTED_SLUGS = {
   'conjuntos-de-cores': { categoria: 'conjuntosDeCores', valueType: 'color', colorCount: 4 },
   icones: { categoria: 'icones', valueType: 'image', imageAccept: 'image/png' },
   'imagens-de-fundo': { categoria: 'imagensDeFundo', valueType: 'image', imageAccept: 'image/png,image/jpeg' },
+  patterns: { categoria: 'patterns', valueType: 'image', imageAccept: 'image/png,image/jpeg' },
 };
 
 export default function PersonalizationCategoryPage() {
