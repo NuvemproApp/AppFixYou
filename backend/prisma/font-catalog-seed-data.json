@@ -112,74 +112,6 @@
     "family": "Montserrat"
   },
   {
-    "slug": "Montserrat-Black",
-    "family": "Montserrat Black"
-  },
-  {
-    "slug": "Montserrat-BlackItalic",
-    "family": "Montserrat Black Italic"
-  },
-  {
-    "slug": "Montserrat-Bold",
-    "family": "Montserrat Bold"
-  },
-  {
-    "slug": "Montserrat-BoldItalic",
-    "family": "Montserrat Bold Italic"
-  },
-  {
-    "slug": "Montserrat-ExtraBold",
-    "family": "Montserrat Extra Bold"
-  },
-  {
-    "slug": "Montserrat-ExtraBoldItalic",
-    "family": "Montserrat Extra Bold Italic"
-  },
-  {
-    "slug": "Montserrat-ExtraLight",
-    "family": "Montserrat Extra Light"
-  },
-  {
-    "slug": "Montserrat-ExtraLightItalic",
-    "family": "Montserrat Extra Light Italic"
-  },
-  {
-    "slug": "Montserrat-Italic",
-    "family": "Montserrat Italic"
-  },
-  {
-    "slug": "Montserrat-Light",
-    "family": "Montserrat Light"
-  },
-  {
-    "slug": "Montserrat-LightItalic",
-    "family": "Montserrat Light Italic"
-  },
-  {
-    "slug": "Montserrat-Medium",
-    "family": "Montserrat Medium"
-  },
-  {
-    "slug": "Montserrat-MediumItalic",
-    "family": "Montserrat Medium Italic"
-  },
-  {
-    "slug": "Montserrat-SemiBold",
-    "family": "Montserrat Semi Bold"
-  },
-  {
-    "slug": "Montserrat-SemiBoldItalic",
-    "family": "Montserrat Semi Bold Italic"
-  },
-  {
-    "slug": "Montserrat-Thin",
-    "family": "Montserrat Thin"
-  },
-  {
-    "slug": "Montserrat-ThinItalic",
-    "family": "Montserrat Thin Italic"
-  },
-  {
     "slug": "PaperFlowers",
     "family": "Paper Flowers"
   },
@@ -202,58 +134,6 @@
   {
     "slug": "Rubik-Regular",
     "family": "Rubik"
-  },
-  {
-    "slug": "Rubik-Black",
-    "family": "Rubik Black"
-  },
-  {
-    "slug": "Rubik-BlackItalic",
-    "family": "Rubik Black Italic"
-  },
-  {
-    "slug": "Rubik-Bold",
-    "family": "Rubik Bold"
-  },
-  {
-    "slug": "Rubik-BoldItalic",
-    "family": "Rubik Bold Italic"
-  },
-  {
-    "slug": "Rubik-ExtraBold",
-    "family": "Rubik Extra Bold"
-  },
-  {
-    "slug": "Rubik-ExtraBoldItalic",
-    "family": "Rubik Extra Bold Italic"
-  },
-  {
-    "slug": "Rubik-Italic",
-    "family": "Rubik Italic"
-  },
-  {
-    "slug": "Rubik-Light",
-    "family": "Rubik Light"
-  },
-  {
-    "slug": "Rubik-LightItalic_1",
-    "family": "Rubik Light Italic"
-  },
-  {
-    "slug": "Rubik-Medium",
-    "family": "Rubik Medium"
-  },
-  {
-    "slug": "Rubik-MediumItalic",
-    "family": "Rubik Medium Italic"
-  },
-  {
-    "slug": "Rubik-SemiBold",
-    "family": "Rubik Semi Bold"
-  },
-  {
-    "slug": "Rubik-SemiBoldItalic",
-    "family": "Rubik Semi Bold Italic"
   },
   {
     "slug": "Sacramento-Regular",
@@ -282,10 +162,6 @@
   {
     "slug": "Sniglet-Regular",
     "family": "Sniglet"
-  },
-  {
-    "slug": "Sniglet-ExtraBold",
-    "family": "Sniglet Extra Bold"
   },
   {
     "slug": "Snoopy",

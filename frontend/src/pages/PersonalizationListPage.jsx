@@ -197,11 +197,20 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
     }
   }, [items, categoria]);
 
-  function openCreate() {
+  async function openCreate() {
     setMode('create');
     setEditingId(null);
-    setForm(emptyForm(valueType, colorCount));
     setSaveError('');
+
+    let nextPosicao = '';
+    try {
+      const { data } = await api.get('/api/personalizations/max-posicao', { params: { categoria } });
+      nextPosicao = String((data.maxPosicao || 0) + 1);
+    } catch {
+      // falha ao buscar a próxima posicao — deixa em branco, mesmo comportamento de antes
+    }
+
+    setForm({ ...emptyForm(valueType, colorCount), posicao: nextPosicao });
     setModalOpen(true);
   }
 

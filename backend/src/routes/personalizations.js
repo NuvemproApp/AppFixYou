@@ -114,6 +114,27 @@ router.get('/', async (req, res, next) => {
   }
 });
 
+// ─── GET /api/personalizations/max-posicao?categoria=X ── maior posicao atual ─
+// Usado pelo frontend pra sugerir a próxima posicao (max + 1) ao abrir o
+// modal de criação — precisa ser um agregado no banco, não `items.length` nem
+// o maior valor da página carregada, porque a lista é paginada e posicao pode
+// ter buracos (itens excluídos não recompactam a sequência).
+router.get('/max-posicao', async (req, res, next) => {
+  try {
+    const { categoria } = req.query;
+    if (!categoria) throw new AppError('categoria é obrigatória.', 400, 'MISSING_CATEGORIA');
+
+    const result = await prisma.personalizationItem.aggregate({
+      where: { storeId: req.store.id, categoria: String(categoria) },
+      _max: { posicao: true },
+    });
+
+    res.json({ maxPosicao: result._max.posicao ?? 0 });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // ─── POST /api/personalizations ── cria um item ──────────────────────────────
 // Categorias de imagem chegam como multipart/form-data (campo "imagem"); as
 // demais continuam JSON puro — o multer não interfere quando o Content-Type
