@@ -17,7 +17,8 @@ const CATEGORIA_POR_SLUG = {
 const IMPLEMENTED_SLUGS = {
   'cores-de-fonte': { categoria: 'coresDeFonte', valueType: 'color', colorCount: 1 },
   'conjuntos-de-cores': { categoria: 'conjuntosDeCores', valueType: 'color', colorCount: 4 },
-  icones: { categoria: 'icones', valueType: 'image' },
+  icones: { categoria: 'icones', valueType: 'image', imageAccept: 'image/png' },
+  'imagens-de-fundo': { categoria: 'imagensDeFundo', valueType: 'image', imageAccept: 'image/png,image/jpeg' },
 };
 
 export default function PersonalizationCategoryPage() {
@@ -32,6 +33,7 @@ export default function PersonalizationCategoryPage() {
         categoria={implemented.categoria}
         valueType={implemented.valueType}
         colorCount={implemented.colorCount}
+        imageAccept={implemented.imageAccept}
       />
     );
   }

@@ -240,7 +240,17 @@
           "density": "Densidade: 96 dpi"
         }
       },
-      "imagensDeFundo": { "title": "Imagens de fundo", "action": "Ver todas" },
+      "imagensDeFundo": {
+        "title": "Imagens de fundo",
+        "titleSingular": "imagem de fundo",
+        "action": "Ver todas",
+        "uploadHint": {
+          "title": "ATENÇÃO! Orientações para o upload da imagem de fundo:",
+          "format": "Formato: .png, .jpg ou .jpeg",
+          "dimensions": "Dimensões: 1200px de comprimento x 1200px de altura",
+          "density": "Densidade: 150 dpi"
+        }
+      },
       "conjuntosDeCores": { "title": "Conjuntos de cores", "titleSingular": "conjunto de cores", "action": "Ver todos" },
       "patterns": { "title": "Patterns", "action": "Ver todos" }
     }

@@ -101,7 +101,7 @@ function emptyForm(valueType, colorCount) {
 // criação (mesma regra do legado, replicada no backend): o modal de edição só
 // mostra Situação e Posição. `valueType` decide se o valor é cor(es) ou uma
 // imagem enviada (URL do R2 após upload).
-export default function PersonalizationListPage({ categoria, valueType = 'color', colorCount }) {
+export default function PersonalizationListPage({ categoria, valueType = 'color', colorCount, imageAccept = 'image/png' }) {
   const { t } = useTranslation();
   const categoriaLabel = t(`personalizacoes.categorias.${categoria}.title`);
   const categoriaSingular = t(`personalizacoes.categorias.${categoria}.titleSingular`);
@@ -374,6 +374,7 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
                     <ImageUploadInput
                       file={form.imagemFile}
                       onChange={(f) => setForm((prev) => ({ ...prev, imagemFile: f }))}
+                      accept={imageAccept}
                     />
                     <Alert appearance="primary" title={t(`personalizacoes.categorias.${categoria}.uploadHint.title`)}>
                       <Box display="flex" flexDirection="column" gap="1">

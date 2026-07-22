@@ -11,7 +11,7 @@ router.use(requireAuth);
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 2 * 1024 * 1024 },
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => cb(null, /^image\//.test(file.mimetype)),
 });
 
@@ -20,7 +20,10 @@ const CONJUNTO_DE_CORES_SIZE = 4;
 
 // Categorias cujo valor é uma imagem enviada (URL pública do R2), em vez de
 // uma cor. Cada uma pode ter seu próprio formato exigido.
-const IMAGE_CATEGORIAS = { icones: { mimetype: 'image/png' } };
+const IMAGE_CATEGORIAS = {
+  icones: { mimetypes: ['image/png'] },
+  imagensDeFundo: { mimetypes: ['image/png', 'image/jpeg'] },
+};
 
 // Título e Valor são imutáveis após a criação (mesma regra do legado, aplicada
 // no update abaixo) — só a validação de criação precisa conhecer o formato.
@@ -96,8 +99,8 @@ router.post('/', upload.single('imagem'), async (req, res, next) => {
     const imageConfig = IMAGE_CATEGORIAS[categoria];
     if (imageConfig) {
       if (!req.file) throw new AppError('imagem é obrigatória.', 400, 'MISSING_IMAGEM');
-      if (req.file.mimetype !== imageConfig.mimetype) {
-        throw new AppError(`A imagem deve estar no formato ${imageConfig.mimetype}.`, 400, 'INVALID_IMAGE_FORMAT');
+      if (!imageConfig.mimetypes.includes(req.file.mimetype)) {
+        throw new AppError(`A imagem deve estar em um destes formatos: ${imageConfig.mimetypes.join(', ')}.`, 400, 'INVALID_IMAGE_FORMAT');
       }
       const key = await uploadToR2(req.file.buffer, req.file.originalname, req.file.mimetype, req.store.id, req.store.nuvemshopId);
       valorValidado = getPublicUrl(key);
