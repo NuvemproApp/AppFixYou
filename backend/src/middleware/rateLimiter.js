@@ -37,4 +37,25 @@ const ticketLimiter = rateLimit({
   message: { error: 'Muitas mensagens em pouco tempo. Aguarde alguns minutos.', code: 'SUPPORT_RATE_LIMIT' },
 });
 
-module.exports = { globalLimiter, authLimiter, checkoutLimiter, adminLoginLimiter, ticketLimiter };
+// Geração de imagem personalizada (FixYou): roda ANTES do globalLimiter em
+// server.js (o router /storefront precisa disso pra liberar CORS pra
+// qualquer domínio de loja), então essa rota específica fica sem limite
+// nenhum a menos que seja limitada aqui — e ela é bem mais cara (canvas +
+// fetch de imagem/fonte no R2) do que as outras rotas de vitrine, que só
+// fazem uma consulta simples ao banco.
+const personalizedImageLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 40,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Muitas requisicoes. Tente novamente em 1 minuto.', code: 'RATE_LIMIT_EXCEEDED' },
+});
+
+module.exports = {
+  globalLimiter,
+  authLimiter,
+  checkoutLimiter,
+  adminLoginLimiter,
+  ticketLimiter,
+  personalizedImageLimiter,
+};

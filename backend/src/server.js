@@ -1,5 +1,6 @@
 require('dotenv').config();
 
+const path = require('path');
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
@@ -20,6 +21,12 @@ app.set('trust proxy', 1);
 // ─── Security headers
 app.use(helmet());
 
+// ─── Vitrine (widget de personalização) — ANTES do CORS estrito abaixo, pois
+// é chamado do domínio da loja (nunca de FRONTEND_URL/ADMIN_FRONTEND_URL). O
+// próprio router libera CORS/CORP internamente para suas rotas.
+const storefrontRouter = require('./routes/storefront');
+app.use('/storefront', storefrontRouter);
+
 // ─── CORS
 const allowedOrigins = [
   process.env.FRONTEND_URL,
@@ -35,6 +42,11 @@ app.use(cors({
   },
   credentials: true,
 }));
+
+// ─── Script público de vitrine (app.js / app.min.js) — sem prefixo de rota,
+// carregado como <script src> pelo tema da loja (não precisa de CORS: tags
+// <script> cross-origin carregam e executam normalmente sem isso).
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // ─── Webhook Stripe: raw body, ANTES do express.json e SEM o rate limit global
 // (eventos do Stripe são verificados por assinatura e não devem ser throttled).
