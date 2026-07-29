@@ -208,6 +208,7 @@
     "colProduct": "Producto",
     "colModel": "Modelo",
     "actionSetModel": "Definir modelo",
+    "actionPersonalize": "Personalizar",
     "modalTitle": "Definir modelo",
     "fieldModel": "Modelo:",
     "modelos": {
@@ -262,6 +263,14 @@
         }
       }
     }
+  },
+  "productPersonalizations": {
+    "subtitle": "Personalizaciones para el producto: {{produto}} ({{modelo}})",
+    "selectAllButton": "Seleccionar todos los ítems de esta pestaña",
+    "saveButton": "Guardar personalizaciones del producto",
+    "saveSuccess": "¡Personalizaciones del producto guardadas con éxito!",
+    "errorLoad": "Error al cargar las personalizaciones del producto.",
+    "errorSave": "Error al guardar las personalizaciones del producto."
   },
   "personalizationItems": {
     "searchPlaceholder": "Buscar {{categoria}}",
@@ -329,6 +338,7 @@
     "noData": "No se encontraron datos.",
     "close": "Cerrar",
     "home": "Inicio",
-    "comingSoon": "Próximamente."
+    "comingSoon": "Próximamente.",
+    "actions": "Acciones"
   }
 }

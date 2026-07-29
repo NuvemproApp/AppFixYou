@@ -30,6 +30,7 @@ model Store {
   supportTickets    SupportTicket[]
   productPersonalizations ProductPersonalization[]
   personalizationItems    PersonalizationItem[]
+  productPersonalizationItems ProductPersonalizationItem[]
   @@map("stores")
 }
 
@@ -133,6 +134,26 @@ model PersonalizationItem {
 
   @@index([storeId, categoria, posicao])
   @@map("personalization_items")
+
+  productPersonalizationItems ProductPersonalizationItem[]
+}
+
+// ─── FixYou: personalizações habilitadas para um produto específico ────────
+// Equivalente ao App_Fy_Produtos_Personalizacoes do legado — quais itens do
+// catálogo (dentre os permitidos pelo modelo do produto) ficam disponíveis
+// pra esse produto na vitrine. Sem linhas = nenhuma opção liberada ainda.
+model ProductPersonalizationItem {
+  id                    Int      @id @default(autoincrement())
+  storeId               Int
+  store                 Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  productId             String   // ID do produto na Nuvemshop
+  personalizationItemId Int
+  personalizationItem   PersonalizationItem @relation(fields: [personalizationItemId], references: [id], onDelete: Cascade)
+  createdAt             DateTime @default(now())
+
+  @@unique([storeId, productId, personalizationItemId])
+  @@index([storeId, productId])
+  @@map("product_personalization_items")
 }
 
 // ─── FixYou: catálogo global de fontes (compartilhado por todas as lojas) ──

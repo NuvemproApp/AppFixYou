@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -22,101 +22,13 @@ import ColorInput from '../components/ColorInput.jsx';
 import ImageUploadInput from '../components/ImageUploadInput.jsx';
 import FontPicker from '../components/FontPicker.jsx';
 import Breadcrumb from '../components/Breadcrumb.jsx';
+import ActionsMenu from '../components/ActionsMenu.jsx';
+import PersonalizationValuePreview from '../components/PersonalizationValuePreview.jsx';
 import { registerFont, cssFontFamily } from '../lib/fontRegistry.js';
 
 const PAGE_SIZE = 20;
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // mesmo limite do multer no backend
-
-// ─── Dropdown de ações (Editar/Excluir) — mesmo padrão usado no AlugueMais ───
-function ActionsMenu({ onEdit, onDelete, labelEdit, labelDelete }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function handler(e) {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-    }
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
-
-  return (
-    <Box ref={ref} position="relative" display="inline-flex">
-      <Button size="small" appearance="neutral" onClick={() => setOpen((v) => !v)}>
-        Ações ▾
-      </Button>
-      {open && (
-        <Box
-          backgroundColor="neutral-background"
-          borderColor="neutral-surfaceHighlight"
-          borderStyle="solid"
-          borderWidth="1"
-          borderRadius="2"
-          boxShadow="2"
-          position="absolute"
-          right="0"
-          top="110%"
-          zIndex="500"
-          minWidth="130px"
-        >
-          <Box display="flex" flexDirection="column" padding="1" gap="1">
-            <Button appearance="transparent" size="small" onClick={() => { onEdit(); setOpen(false); }}>
-              {labelEdit}
-            </Button>
-            <Button appearance="transparent" size="small" onClick={() => { onDelete(); setOpen(false); }}>
-              <Text color="danger-interactive">{labelDelete}</Text>
-            </Button>
-          </Box>
-        </Box>
-      )}
-    </Box>
-  );
-}
-
-// Nimbus Box não repassa a prop "style" bruta — só suporta CSS via props
-// próprias por propriedade (display, position, etc.) com valores de token.
-// Cor arbitrária (hex do usuário) e background-image não têm prop de token
-// equivalente, então esses swatches usam <div> nativo em vez de <Box>.
-function ColorSwatch({ value }) {
-  const colors = Array.isArray(value) ? value : [value];
-  return (
-    <Box display="flex" gap="1">
-      {colors.map((c, i) => (
-        <div
-          key={i}
-          style={{
-            width: 20,
-            height: 20,
-            borderRadius: '50%',
-            backgroundColor: HEX_RE.test(c) ? c : '#e5e7eb',
-            border: '1px solid rgba(0,0,0,0.15)',
-          }}
-        />
-      ))}
-    </Box>
-  );
-}
-
-// Pattern é usado como preenchimento repetido — mostra em mosaico em vez de
-// uma imagem única contida, pra dar a real ideia de como ele fica aplicado.
-function PatternSwatch({ src, alt }) {
-  return (
-    <div
-      style={{
-        width: 32,
-        height: 32,
-        border: '1px solid rgba(0,0,0,0.15)',
-        borderRadius: 4,
-        backgroundImage: `url(${src})`,
-        backgroundRepeat: 'repeat',
-        backgroundSize: '12px 12px',
-      }}
-      title={alt}
-    />
-  );
-}
 
 function emptyForm(valueType, colorCount) {
   if (valueType === 'image') {
@@ -431,23 +343,7 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
                         <Text fontWeight="bold">{item.titulo}</Text>
                       </Table.Cell>
                       <Table.Cell>
-                        {valueType === 'font' ? (
-                          <span style={{ fontFamily: item.fontFamily ? cssFontFamily(item.fontFamily) : undefined, fontSize: 16 }}>
-                            {item.fontFamily || item.titulo}
-                          </span>
-                        ) : valueType === 'image' ? (
-                          categoria === 'patterns' ? (
-                            <PatternSwatch src={item.valor} alt={item.titulo} />
-                          ) : (
-                            <img
-                              src={item.valor}
-                              alt={item.titulo}
-                              style={{ width: 32, height: 32, objectFit: 'contain' }}
-                            />
-                          )
-                        ) : (
-                          <ColorSwatch value={item.valor} />
-                        )}
+                        <PersonalizationValuePreview item={item} valueType={valueType} categoria={categoria} />
                       </Table.Cell>
                       <Table.Cell>
                         <Tag appearance={item.ativo ? 'success' : 'danger'}>
@@ -456,10 +352,10 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
                       </Table.Cell>
                       <Table.Cell>
                         <ActionsMenu
-                          labelEdit={t('personalizationItems.editar')}
-                          labelDelete={t('personalizationItems.excluir')}
-                          onEdit={() => openEdit(item)}
-                          onDelete={() => handleDelete(item)}
+                          items={[
+                            { label: t('personalizationItems.editar'), onClick: () => openEdit(item) },
+                            { label: t('personalizationItems.excluir'), onClick: () => handleDelete(item), danger: true },
+                          ]}
                         />
                       </Table.Cell>
                     </Table.Row>

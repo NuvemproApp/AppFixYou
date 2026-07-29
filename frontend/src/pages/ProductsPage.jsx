@@ -17,15 +17,10 @@ import {
 } from '@nimbus-ds/components';
 import api from '../services/api.js';
 import Breadcrumb from '../components/Breadcrumb.jsx';
+import ActionsMenu from '../components/ActionsMenu.jsx';
+import { MODELOS, modeloKey } from '../lib/modelos.js';
 
 const PAGE_SIZE = 20;
-
-const MODELOS = [
-  { id: 1, key: 'mesclado' },
-  { id: 2, key: 'textoSomente' },
-  { id: 3, key: 'centralizado' },
-  { id: 4, key: 'textoDuplicado' },
-];
 
 export default function ProductsPage() {
   const { t } = useTranslation();
@@ -108,8 +103,19 @@ export default function ProductsPage() {
   }
 
   function modeloLabel(modeloId) {
-    const modelo = MODELOS.find((m) => m.id === modeloId);
-    return modelo ? t(`products.modelos.${modelo.key}`) : '';
+    const key = modeloKey(modeloId);
+    return key ? t(`products.modelos.${key}`) : '';
+  }
+
+  function actionsFor(product) {
+    const items = [{ label: t('products.actionSetModel'), onClick: () => openDefinirModelo(product) }];
+    if (product.modelo) {
+      items.push({
+        label: t('products.actionPersonalize'),
+        onClick: () => navigate(`/produtos/${product.id}/personalizar`),
+      });
+    }
+    return items;
   }
 
   return (
@@ -178,9 +184,7 @@ export default function ProductsPage() {
                         <Text color="neutral-textLow">{modeloLabel(p.modelo)}</Text>
                       </Table.Cell>
                       <Table.Cell>
-                        <Button size="small" appearance="neutral" onClick={() => openDefinirModelo(p)}>
-                          {t('products.actionSetModel')}
-                        </Button>
+                        <ActionsMenu items={actionsFor(p)} />
                       </Table.Cell>
                     </Table.Row>
                   ))}

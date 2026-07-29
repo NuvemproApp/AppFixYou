@@ -8,6 +8,7 @@ import TermsPage from './pages/TermsPage.jsx';
 import BillingPage from './pages/BillingPage.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import ProductsPage from './pages/ProductsPage.jsx';
+import ProductPersonalizationsPage from './pages/ProductPersonalizationsPage.jsx';
 import PersonalizationsPage from './pages/PersonalizationsPage.jsx';
 import PersonalizationCategoryPage from './pages/PersonalizationCategoryPage.jsx';
 import { Box, Alert, Text, Button } from '@nimbus-ds/components';
@@ -73,6 +74,7 @@ export default function App() {
         <Route element={<Layout />}>
           <Route index element={<Dashboard />} />
           <Route path="produtos" element={<ProductsPage />} />
+          <Route path="produtos/:productId/personalizar" element={<ProductPersonalizationsPage />} />
           <Route path="personalizacoes" element={<PersonalizationsPage />} />
           <Route path="personalizacoes/:categoria" element={<PersonalizationCategoryPage />} />
           <Route path="billing" element={<BillingPage />} />
