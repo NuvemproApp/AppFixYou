@@ -28,10 +28,19 @@ const storefrontRouter = require('./routes/storefront');
 app.use('/storefront', storefrontRouter);
 
 // ─── CORS
+// FRONTEND_URL e ADMIN_FRONTEND_URL podem conter uma lista de origens separadas
+// por vírgula. As URLs *.vercel.app ficam explícitas porque é o domínio que a
+// Nuvemshop de fato carrega no iframe do painel (mesmo se um domínio custom for
+// configurado nas envs no futuro) — mesmo bug corrigido no AlugueMais/SuperCampos.
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   process.env.ADMIN_FRONTEND_URL,
-].filter(Boolean);
+  'https://fixyou-front.vercel.app',
+  'https://fixyou-admin.vercel.app',
+]
+  .filter(Boolean)
+  .flatMap((v) => v.split(',').map((s) => s.trim()))
+  .filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
