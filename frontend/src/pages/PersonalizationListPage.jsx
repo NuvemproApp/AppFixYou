@@ -30,6 +30,17 @@ const PAGE_SIZE = 20;
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // mesmo limite do multer no backend
 
+// Cabeçalho de coluna clicável — mesmo padrão usado no AlugueMais/SuperCampos
+// (Text clicável + seta indicando a direção da ordenação ativa).
+function SortableHeader({ label, field, sortBy, sortDir, onSort }) {
+  const active = sortBy === field;
+  return (
+    <Text as="span" cursor="pointer" fontWeight="bold" onClick={() => onSort(field)}>
+      {label} {active ? (sortDir === 'asc' ? '▲' : '▼') : ''}
+    </Text>
+  );
+}
+
 function emptyForm(valueType, colorCount) {
   if (valueType === 'image') {
     return { titulo: '', imagemFile: null, ativo: true, posicao: '' };
@@ -63,6 +74,8 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
   const [error, setError] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState('posicao');
+  const [sortDir, setSortDir] = useState('asc');
 
   const [modalOpen, setModalOpen] = useState(false);
   const [mode, setMode] = useState('create'); // create | edit
@@ -72,10 +85,11 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
   const [saveError, setSaveError] = useState('');
   const [draggedId, setDraggedId] = useState(null);
 
-  // Reordenar por arraste só faz sentido vendo a lista completa e em ordem
-  // real — desliga com busca ativa ou mais de 1 página, pra não escrever uma
-  // posicao sequencial que não reflita o conjunto todo.
-  const canReorder = !search && pageCount <= 1 && items.length > 1;
+  // Reordenar por arraste só faz sentido vendo a lista completa, em ordem
+  // real (posicao asc) — desliga com busca ativa, mais de 1 página, ou
+  // ordenação diferente da natural, pra não escrever uma posicao sequencial
+  // que não reflita o conjunto todo nem a ordem que o usuário está vendo.
+  const canReorder = !search && pageCount <= 1 && items.length > 1 && sortBy === 'posicao' && sortDir === 'asc';
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -85,12 +99,12 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const loadItems = useCallback(async (pageArg, searchArg) => {
+  const loadItems = useCallback(async (pageArg, searchArg, sortByArg, sortDirArg) => {
     setLoading(true);
     setError('');
     try {
       const { data } = await api.get('/api/personalizations', {
-        params: { categoria, page: pageArg, limit: PAGE_SIZE, search: searchArg || undefined },
+        params: { categoria, page: pageArg, limit: PAGE_SIZE, search: searchArg || undefined, sortBy: sortByArg, sortDir: sortDirArg },
       });
       setItems(data.data || []);
       setPageCount(data.meta?.totalPages || 1);
@@ -102,8 +116,17 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
   }, [categoria, t]);
 
   useEffect(() => {
-    loadItems(page, search);
-  }, [loadItems, page, search]);
+    loadItems(page, search, sortBy, sortDir);
+  }, [loadItems, page, search, sortBy, sortDir]);
+
+  function handleSort(field) {
+    if (sortBy === field) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortBy(field);
+      setSortDir('asc');
+    }
+  }
 
   useEffect(() => {
     if (categoria !== 'fontes') return;
@@ -160,7 +183,7 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
     if (!window.confirm(t('personalizationItems.confirmDelete', { titulo: item.titulo }))) return;
     try {
       await api.delete(`/api/personalizations/${item.id}`);
-      await loadItems(page, search);
+      await loadItems(page, search, sortBy, sortDir);
     } catch {
       setError(t('personalizationItems.errorDelete'));
     }
@@ -189,7 +212,7 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
       setItems(reordered.map((i, idx) => ({ ...i, posicao: idx + 1 })));
     } catch {
       setError(t('personalizationItems.errorReorder'));
-      await loadItems(page, search);
+      await loadItems(page, search, sortBy, sortDir);
     }
   }
 
@@ -248,7 +271,7 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
         await api.put(`/api/personalizations/${editingId}`, { ativo: form.ativo, posicao });
       }
       closeModal();
-      await loadItems(page, search);
+      await loadItems(page, search, sortBy, sortDir);
     } catch {
       setSaveError(t('personalizationItems.errorSave'));
     } finally {
@@ -312,10 +335,16 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
                 <Table.Head>
                   <Table.Row>
                     {canReorder && <Table.Cell as="th" />}
-                    <Table.Cell as="th">{t('personalizationItems.colPosicao')}</Table.Cell>
-                    <Table.Cell as="th">{t('personalizationItems.colTitulo')}</Table.Cell>
+                    <Table.Cell as="th">
+                      <SortableHeader label={t('personalizationItems.colPosicao')} field="posicao" sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
+                    </Table.Cell>
+                    <Table.Cell as="th">
+                      <SortableHeader label={t('personalizationItems.colTitulo')} field="titulo" sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
+                    </Table.Cell>
                     <Table.Cell as="th">{t('personalizationItems.colValor')}</Table.Cell>
-                    <Table.Cell as="th">{t('personalizationItems.colSituacao')}</Table.Cell>
+                    <Table.Cell as="th">
+                      <SortableHeader label={t('personalizationItems.colSituacao')} field="ativo" sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
+                    </Table.Cell>
                     <Table.Cell as="th">#</Table.Cell>
                   </Table.Row>
                 </Table.Head>

@@ -71,6 +71,10 @@ async function findOwnedItem(storeId, id) {
   return item;
 }
 
+// Colunas que a tela permite ordenar por clique no cabeçalho — mesmo padrão
+// já usado no AlugueMais/SuperCampos (SortableHeader + sortBy/sortDir).
+const SORTABLE_FIELDS = ['posicao', 'titulo', 'ativo'];
+
 // ─── GET /api/personalizations?categoria=coresDeFonte ── lista paginada ──────
 router.get('/', async (req, res, next) => {
   try {
@@ -79,6 +83,8 @@ router.get('/', async (req, res, next) => {
 
     const { page, limit, skip } = parsePagination(req.query);
     const search = String(req.query.search || '').trim();
+    const sortBy = SORTABLE_FIELDS.includes(req.query.sortBy) ? req.query.sortBy : 'posicao';
+    const sortDir = req.query.sortDir === 'desc' ? 'desc' : 'asc';
 
     const where = {
       storeId: req.store.id,
@@ -87,7 +93,7 @@ router.get('/', async (req, res, next) => {
     };
 
     const [items, total] = await Promise.all([
-      prisma.personalizationItem.findMany({ where, orderBy: { posicao: 'asc' }, skip, take: limit }),
+      prisma.personalizationItem.findMany({ where, orderBy: { [sortBy]: sortDir }, skip, take: limit }),
       prisma.personalizationItem.count({ where }),
     ]);
 
