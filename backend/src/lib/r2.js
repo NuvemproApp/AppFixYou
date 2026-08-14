@@ -20,11 +20,12 @@ function extractKey(stored) {
   if (!stored) return null;
   if (!stored.startsWith('http')) return stored;
 
-  const r2Match = stored.match(/cloudflarestorage\.com\/[^/?]+\/([^?]+)/);
-  if (r2Match) return r2Match[1];
-
-  const pub = process.env.R2_PUBLIC_URL;
-  if (pub && stored.startsWith(pub + '/')) return stored.slice(pub.length + 1);
+  // Busca pelo prefixo fixo do app dentro da URL em vez de comparar contra o
+  // domínio atual (R2_PUBLIC_URL) ou o endpoint da API — assim continua
+  // funcionando pra URLs antigas salvas no banco mesmo depois de uma troca
+  // de conta/domínio do R2 (a key em si nunca muda, só o domínio que serve).
+  const idx = stored.indexOf(`${APP_PREFIX}/`);
+  if (idx !== -1) return stored.slice(idx);
 
   return null;
 }
