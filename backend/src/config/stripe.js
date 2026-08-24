@@ -46,6 +46,7 @@ function clientForMode(mode) {
 }
 
 async function refreshStripeMode() {
+  _lastModeCheck = Date.now(); // registra o refresh (boot + toggle do admin) p/ o throttle lazy
   try {
     const cfg = await prisma.adminConfig.findUnique({ where: { key: 'stripe_mode' } });
     if (cfg && STRIPE_MODES.includes(cfg.value)) activeMode = cfg.value;
@@ -59,14 +60,28 @@ function getActiveMode() {
   return activeMode;
 }
 
-// Reavalia o modo periodicamente (toggle reflete em ~15s entre instâncias).
-const _modeTimer = setInterval(() => { refreshStripeMode(); }, 15000);
-if (_modeTimer.unref) _modeTimer.unref();
-refreshStripeMode();
+// Reavaliação LAZY (sem polling em background): só relê o modo quando o Stripe é
+// realmente usado E o TTL expirou. Sem tráfego → sem query → o Postgres serverless
+// (Neon) suspende e não gera consumo ocioso. O toggle do admin chama
+// refreshStripeMode() direto, então reflete na hora (mesmo padrão do AlugueMais/
+// SuperCampos/PromoHero — substitui o setInterval(15000) que mantinha o Neon
+// sempre acordado, ~5.700 consultas/dia só pra checar um valor que quase nunca muda).
+const MODE_TTL_MS = 60_000;
+let _lastModeCheck = 0;
+let _modeRefreshing = false;
+function maybeRefreshMode() {
+  const now = Date.now();
+  if (_modeRefreshing || now - _lastModeCheck < MODE_TTL_MS) return;
+  _modeRefreshing = true;
+  refreshStripeMode().finally(() => { _modeRefreshing = false; });
+}
+
+refreshStripeMode(); // leitura inicial no boot
 
 // Proxy: resolve para o cliente Stripe do modo ativo no momento da chamada.
 const stripe = new Proxy({}, {
   get(_t, prop) {
+    maybeRefreshMode();
     const client = clientForMode(activeMode);
     const value = client[prop];
     return typeof value === 'function' ? value.bind(client) : value;
