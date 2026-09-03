@@ -6,6 +6,18 @@ versionado em [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [1.9.6] - 2026-09-03
+
+### Performance
+
+- **Cache das rotas públicas de vitrine (menos compute no Neon)** — `GET /storefront/:storeId/products/:productId/config` e `.../personalized-image` são chamadas por **cada visitante** da loja. Antes, a `personalized-image` consultava `productPersonalization` no banco em **toda** request — inclusive quando a imagem composta já estava no cache em memória (o lookup ocorria antes da checagem do cache) — e a `config` refazia `pp` + itens a cada page view. Agora há um cache em memória por `(storeId:productId)` com TTL curto (60s), no mesmo padrão do `_storeCache` já existente: cache-hit de imagem passa a fazer **zero query** ao banco, e a `config` reaproveita o resultado computado. Sob tráfego real corta leituras repetidas (menos compute-hours no Neon); em ocioso continua sem nenhuma query → o Neon suspende (*scale-to-zero*). Mudanças no admin propagam em até 60s. Cacheia inclusive o caso "produto sem personalização" (`null`), o mais comum.
+
+### Notas
+
+- Consolida a linha de trabalho de **banco econômico / scale-to-zero**: o polling de 15s do `stripe_mode` (que mantinha o Neon acordado 24/7) já havia sido substituído por revalidação preguiçosa sob demanda (*stale-while-revalidate*, TTL 60s) em `config/stripe.js`; health checks permanecem estáticos (não tocam o banco) e não há `setInterval`/cron no backend. Resultado: **app ocioso = zero queries** ao Postgres.
+
+---
+
 ## [1.9.5] - 2026-06-26
 
 ### Adicionado
