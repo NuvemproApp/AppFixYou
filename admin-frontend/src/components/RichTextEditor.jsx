@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Link from '@tiptap/extension-link';
 import { Bold, Italic, Heading2, Heading3, List, ListOrdered, Link2, RemoveFormatting } from 'lucide-react';
 
 function ToolbarButton({ onClick, active, title, children }) {
@@ -27,9 +26,12 @@ function ToolbarButton({ onClick, active, title, children }) {
  */
 export default function RichTextEditor({ value, onChange }) {
   const editor = useEditor({
+    // TipTap v3: o StarterKit já inclui a extensão Link — configuramos por ele
+    // (adicionar um Link separado registraria a extensão em duplicidade).
     extensions: [
-      StarterKit,
-      Link.configure({ openOnClick: false, HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' } }),
+      StarterKit.configure({
+        link: { openOnClick: false, HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' } },
+      }),
     ],
     content: value || '',
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
@@ -38,7 +40,7 @@ export default function RichTextEditor({ value, onChange }) {
   // Sincroniza quando o value externo muda (ex: abrir outra versão para editar).
   useEffect(() => {
     if (editor && value !== undefined && value !== editor.getHTML()) {
-      editor.commands.setContent(value || '', false);
+      editor.commands.setContent(value || '', { emitUpdate: false });
     }
   }, [value, editor]);
 

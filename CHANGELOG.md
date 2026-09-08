@@ -6,6 +6,23 @@ versionado em [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [1.10.0] - 2026-09-08
+
+### Adicionado
+
+- **Registro de LEADS no NuvemPro Partners** — a loja passa a aparecer no painel do parceiro como "Instalado — sem plano" assim que usa o app com um código de parceiro, **antes mesmo de assinar**. Complementa (não substitui) o metadata de parceiro já enviado na assinatura do Stripe.
+  - Novo cliente `lib/partners.js` (best-effort, **nunca lança**, timeout 5s): `registerPartnerLead`, `markPartnerUninstalled`, `validatePartner`, `normalizeCode`. No-op silencioso sem `PARTNERS_API_KEY`.
+  - **Link de indicação** (`auth.js`): o OAuth lê o parâmetro `state` (`.../authorize?state=CODIGO`), valida no Partners e, se válido, vincula o parceiro à loja e registra o lead — sem o lojista digitar nada.
+  - **Associação manual** (`POST /api/billing/partner`): ao salvar o parceiro, registra o lead também.
+  - **Backfill de lojas já instaladas** (`middleware/auth.js`): re-registra o lead no carregamento do app (idempotente, throttled 1x/6h por loja, fire-and-forget — só HTTP externo, não toca o banco).
+  - **Desinstalação** (`nuvemshopWebhooks.js`): `app/uninstalled` (e `store/redact` como rede de segurança) notifica o Partners (`/referrals/uninstall`) quando a loja tinha parceiro.
+  - Novas envs (opcionais, com fallback): `PARTNERS_API_URL`, `PARTNERS_APP_SLUG` (→`APP_SLUG`), `PARTNERS_APP_NAME` (→`APP_NAME`), `PARTNERS_APP_ID` (→`NUVEMSHOP_APP_ID`).
+  - Testes unitários (`partners.test.js`, 9 casos): no-op sem key, payload/headers, normalização do código, storeId sempre string, nunca lança, e os shapes de `validatePartner`.
+
+> **Chave de conciliação**: o `storeId` enviado ao Partners é o **id interno do Store** (`String(store.id)`) — o mesmo valor do `store_id` no metadata da assinatura no Stripe, para o Partners conciliar lead ↔ assinatura por `(appSlug, storeId)`.
+
+---
+
 ## [1.9.6] - 2026-09-03
 
 ### Performance

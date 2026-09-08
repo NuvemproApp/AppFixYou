@@ -303,6 +303,24 @@ PARTNERS_API_KEY=nv_live_...
 ```
 Criar a chave em: `https://partners.nuvempro.com/admin/api-keys`
 
+### Leads / Indicação (v1.10.0+) — `lib/partners.js`
+
+Além do metadata na assinatura (acima), a loja é registrada como **lead** no Partners
+assim que usa o app com código de parceiro, **antes de assinar** (aparece como
+"Instalado — sem plano" no painel do parceiro). Cliente best-effort — **nunca lança**,
+timeout 5s, no-op sem `PARTNERS_API_KEY`.
+
+| Função (`lib/partners.js`) | Endpoint Partners | Onde é chamada |
+|---|---|---|
+| `validatePartner(id)` | `GET /api/v1/partners/:id` | OAuth callback (valida o `state`) |
+| `registerPartnerLead({partnerId, storeId, ...})` | `POST /api/v1/referrals` | OAuth callback, `POST /api/billing/partner`, `requireAuth` (backfill) |
+| `markPartnerUninstalled(storeId)` | `POST /api/v1/referrals/uninstall` | webhook `app/uninstalled` / `store/redact` |
+
+- **Link de indicação**: `https://www.tiendanube.com/apps/{APP_ID}/authorize?state={CODIGO}` — o `auth.js` lê `state`, valida e vincula a loja sem o lojista digitar nada.
+- **Backfill**: `requireAuth` re-registra o lead no load (idempotente, throttled 1x/6h por loja, fire-and-forget; só HTTP, não toca o banco → não afeta o scale-to-zero do Neon).
+- **Chave de conciliação (`storeId`)**: é o **id interno do Store** (`String(store.id)`), o **mesmo** valor do `store_id` no metadata da assinatura — o Partners concilia lead ↔ assinatura por `(appSlug, storeId)`. Se um dia mudar essa chave, mude **nos dois** lugares juntos.
+- **Envs** (opcionais, com fallback): `PARTNERS_API_URL` (default `https://partners.nuvempro.com`), `PARTNERS_APP_SLUG`→`APP_SLUG`, `PARTNERS_APP_NAME`→`APP_NAME`, `PARTNERS_APP_ID`→`NUVEMSHOP_APP_ID`.
+
 ---
 
 ## Sistema de Suporte (FAQ + Vídeo + WhatsApp + Tickets)

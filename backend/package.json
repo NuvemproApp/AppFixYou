@@ -40,7 +40,8 @@
     "defu": "^6.1.5",
     "effect": "^3.20.0",
     "qs": "^6.15.2",
-    "brace-expansion": "^5.0.6"
+    "brace-expansion": "^5.0.6",
+    "deepmerge-ts": "^8.0.2"
   },
   "engines": {
     "node": "22.x"

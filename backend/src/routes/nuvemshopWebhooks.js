@@ -1,6 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
 const prisma = require('../lib/prisma');
+const { markPartnerUninstalled } = require('../lib/partners');
 
 const router = express.Router();
 
@@ -39,13 +40,21 @@ function checkHmac(req) {
  */
 
 // Marca a data de desinstalação na loja. Idempotente: não sobrescreve data anterior.
-async function markUninstalled(storeId) {
-  if (!storeId) return;
+// Também notifica o NuvemPro Partners (best-effort) quando a loja tinha parceiro
+// vinculado, para o lead sair da lista do parceiro. `storeId` do webhook é o
+// nuvemshopId; ao Partners enviamos o id INTERNO do Store (mesma chave do lead).
+async function markUninstalled(nuvemshopId) {
+  if (!nuvemshopId) return;
   try {
-    await prisma.store.updateMany({
-      where: { nuvemshopId: String(storeId), uninstalledAt: null },
-      data: { uninstalledAt: new Date() },
+    const store = await prisma.store.findUnique({
+      where: { nuvemshopId: String(nuvemshopId) },
+      select: { id: true, partnerId: true, uninstalledAt: true },
     });
+    if (!store) return;
+    if (!store.uninstalledAt) {
+      await prisma.store.update({ where: { id: store.id }, data: { uninstalledAt: new Date() } });
+    }
+    if (store.partnerId) markPartnerUninstalled(store.id); // fire-and-forget
   } catch (err) {
     console.error('[nuvemshop-webhook] markUninstalled falhou:', err.message);
   }
