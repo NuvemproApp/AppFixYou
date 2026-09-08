@@ -5,6 +5,7 @@ const { AppError } = require('../lib/errors');
 const { exchangeCodeForToken, fetchStoreInfo } = require('../config/nuvemshop');
 const { requireAuth } = require('../middleware/auth');
 const { authLimiter } = require('../middleware/rateLimiter');
+const { validatePartner, registerPartnerLead, normalizeCode } = require('../lib/partners');
 
 const router = express.Router();
 
@@ -69,6 +70,35 @@ router.get('/callback', authLimiter, async (req, res, next) => {
       update: {},
       create: { storeId: store.id, status: 'none' },
     });
+
+    // ─── Link de indicação (referral): state = código do parceiro ─────────────
+    // O painel Partners gera links .../authorize?state=CODIGO. Se o state for um
+    // código de parceiro válido, vincula a loja e registra o lead ("instalado,
+    // sem plano") — sem o lojista digitar nada. `storeId` = id INTERNO do Store
+    // (mesma chave do metadata da assinatura no Stripe, p/ conciliação). Nunca
+    // quebra o OAuth: qualquer erro é apenas logado.
+    try {
+      const ref = normalizeCode(req.query.state);
+      if (ref.length >= 4) {
+        const { ok, partner } = await validatePartner(ref);
+        if (ok) {
+          const data = { partnerId: ref };
+          if (partner?.name) data.partnerName = partner.name;
+          await prisma.store.update({ where: { id: store.id }, data });
+          Object.assign(store, data);
+          // fire-and-forget: não atrasa o redirect do lojista
+          registerPartnerLead({
+            partnerId: ref,
+            storeId: store.id,
+            storeName: store.name,
+            storeUrl: store.domain ? `https://${store.domain}` : null,
+            email: store.email,
+          });
+        }
+      }
+    } catch (err) {
+      console.warn('[auth] referral (state) falhou:', err?.message || err);
+    }
 
     // Generate JWT (kept for session use if needed)
     const token = jwt.sign(

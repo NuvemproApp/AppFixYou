@@ -1,6 +1,29 @@
 const jwt = require('jsonwebtoken');
 const prisma = require('../lib/prisma');
 const { AppError } = require('../lib/errors');
+const { registerPartnerLead } = require('../lib/partners');
+
+// Re-registra o lead no Partners quando a loja tem parceiro vinculado — cobre
+// lojas JÁ instaladas (sem backfill manual), pois o registro é idempotente. É
+// throttled em memória (1x por loja a cada 6h) e fire-and-forget: só uma chamada
+// HTTP externa, nunca toca o banco (não afeta o scale-to-zero do Neon) nem
+// bloqueia a request.
+const _leadThrottle = new Map();
+const LEAD_THROTTLE_MS = 6 * 60 * 60 * 1000; // 6h
+
+function maybeRegisterLead(store) {
+  if (!store?.partnerId) return;
+  const now = Date.now();
+  if (now - (_leadThrottle.get(store.id) || 0) < LEAD_THROTTLE_MS) return;
+  _leadThrottle.set(store.id, now);
+  registerPartnerLead({
+    partnerId: store.partnerId,
+    storeId: store.id,
+    storeName: store.name,
+    storeUrl: store.domain ? `https://${store.domain}` : null,
+    email: store.email,
+  });
+}
 
 async function requireAuth(req, res, next) {
   try {
@@ -59,6 +82,7 @@ async function requireAuth(req, res, next) {
 
     req.store = store;
     req.storeId = store.id;
+    maybeRegisterLead(store); // idempotente + throttled; não aguarda
     next();
   } catch (err) {
     if (err instanceof AppError) {

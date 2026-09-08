@@ -6,6 +6,7 @@ const { checkoutLimiter } = require('../middleware/rateLimiter');
 const { StripeService, stripe } = require('../config/stripe');
 const adminPlanService = require('../admin/services/adminPlanService');
 const { normalizeTrialMode, normalizeTrialDays } = require('../lib/trial');
+const { registerPartnerLead } = require('../lib/partners');
 
 const router = express.Router();
 
@@ -481,6 +482,16 @@ router.post('/partner', async (req, res, next) => {
     await prisma.store.update({
       where: { id: req.store.id },
       data: { partnerId: partner.partnerId, partnerName: partner.name },
+    });
+
+    // Registra o lead no Partners ("instalado, sem plano") — fire-and-forget.
+    // storeId = id INTERNO do Store (mesma chave do metadata da assinatura).
+    registerPartnerLead({
+      partnerId: partner.partnerId,
+      storeId: req.store.id,
+      storeName: req.store.name,
+      storeUrl: req.store.domain ? `https://${req.store.domain}` : null,
+      email: req.store.email,
     });
 
     // Atualiza metadados da subscription ativa no Stripe (best-effort — não falha a request)
