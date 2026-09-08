@@ -37,6 +37,41 @@ async function findStore(nuvemshopId) {
   return store;
 }
 
+// ─── Cache em memória da config de personalização por produto ────────────────
+// As rotas públicas abaixo são chamadas por CADA visitante da loja. Sem cache,
+// /personalized-image consultava o productPersonalization a cada request —
+// mesmo quando a imagem composta já estava no _imageCache — e /config refazia
+// pp + itens a cada page view. Cacheamos por (storeId:productId) com TTL curto:
+// sob tráfego real corta leituras repetidas ao banco (menos compute no Neon) e,
+// em ocioso, não há request → nenhuma query → o Neon suspende igual (scale-to-
+// zero). Mudanças no admin propagam em até SF_CACHE_TTL. Cacheia inclusive o
+// "sem personalização" (null) — a maioria dos produtos não usa o widget.
+const _ppCache = new Map();
+const _configCache = new Map();
+const SF_CACHE_TTL = 60000; // 60s
+const SF_CACHE_MAX = 500;
+
+function sfCacheGet(map, key) {
+  const hit = map.get(key);
+  if (hit && Date.now() - hit.ts < SF_CACHE_TTL) return hit.val;
+  return undefined; // nunca armazenamos undefined → miss inequívoco
+}
+function sfCacheSet(map, key, val) {
+  if (map.size >= SF_CACHE_MAX) map.delete(map.keys().next().value);
+  map.set(key, { val, ts: Date.now() });
+}
+
+async function findProductPersonalization(storeId, productId) {
+  const key = storeId + ':' + productId;
+  const cached = sfCacheGet(_ppCache, key);
+  if (cached !== undefined) return cached;
+  const pp = await prisma.productPersonalization.findUnique({
+    where: { storeId_productId: { storeId, productId: String(productId) } },
+  });
+  sfCacheSet(_ppCache, key, pp);
+  return pp;
+}
+
 // ─── GET /storefront/:storeId/products/:productId/config ────────────────────
 // Config do widget de personalização pra esse produto: modelo definido, e os
 // itens ATIVOS (dentre os selecionados na tela PersonalizacoesProduto do
@@ -49,10 +84,18 @@ router.get('/:storeId/products/:productId/config', async (req, res) => {
     const store = await findStore(req.params.storeId);
     if (!store) return res.json({ enabled: false });
 
-    const pp = await prisma.productPersonalization.findUnique({
-      where: { storeId_productId: { storeId: store.id, productId: String(req.params.productId) } },
-    });
-    if (!pp) return res.json({ enabled: false });
+    const cfgKey = store.id + ':' + req.params.productId;
+    const cachedCfg = sfCacheGet(_configCache, cfgKey);
+    if (cachedCfg !== undefined) {
+      res.setHeader('Cache-Control', 'public, max-age=30');
+      return res.json(cachedCfg);
+    }
+
+    const pp = await findProductPersonalization(store.id, req.params.productId);
+    if (!pp) {
+      sfCacheSet(_configCache, cfgKey, { enabled: false });
+      return res.json({ enabled: false });
+    }
 
     const categorias = MODELO_CATEGORIAS[pp.modelo] || [];
     const selected = await prisma.productPersonalizationItem.findMany({
@@ -69,10 +112,13 @@ router.get('/:storeId/products/:productId/config', async (req, res) => {
     }
     for (const cat of categorias) campos[cat].sort((a, b) => a.posicao - b.posicao);
 
-    if (categorias.some((cat) => campos[cat].length === 0)) return res.json({ enabled: false });
+    const result = categorias.some((cat) => campos[cat].length === 0)
+      ? { enabled: false }
+      : { enabled: true, modelo: pp.modelo, campos };
 
+    sfCacheSet(_configCache, cfgKey, result);
     res.setHeader('Cache-Control', 'public, max-age=30');
-    res.json({ enabled: true, modelo: pp.modelo, campos });
+    res.json(result);
   } catch (err) {
     console.error('[storefront] config:', err.message);
     res.json({ enabled: false });
@@ -99,9 +145,7 @@ router.get('/:storeId/products/:productId/personalized-image', personalizedImage
     const store = await findStore(req.params.storeId);
     if (!store) return res.send(blankImage());
 
-    const pp = await prisma.productPersonalization.findUnique({
-      where: { storeId_productId: { storeId: store.id, productId: String(req.params.productId) } },
-    });
+    const pp = await findProductPersonalization(store.id, req.params.productId);
     if (!pp) return res.send(blankImage());
 
     const ids = {
