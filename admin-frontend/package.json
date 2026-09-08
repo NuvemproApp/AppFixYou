@@ -8,9 +8,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@tiptap/extension-link": "^2.11.5",
-    "@tiptap/react": "^2.11.5",
-    "@tiptap/starter-kit": "^2.11.5",
+    "@tiptap/extension-link": "^3.31.2",
+    "@tiptap/pm": "^3.31.2",
+    "@tiptap/react": "^3.31.2",
+    "@tiptap/starter-kit": "^3.31.2",
     "axios": "^1.16.0",
     "clsx": "^2.1.0",
     "lucide-react": "^0.471.0",
