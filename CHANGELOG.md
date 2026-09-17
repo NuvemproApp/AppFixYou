@@ -6,6 +6,19 @@ versionado em [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [1.10.1] - 2026-09-17
+
+### Adicionado
+
+- **Página de privacidade pública** (`backend/public/privacidade.html`) — servida em `https://api.fixyou.nuvempro.com/privacidade.html` (via `express.static` do `public/`). Documento LGPD fiel aos dados que o app trata (loja via OAuth Nuvemshop, billing via Stripe, tickets, personalizações) para uso na homologação. Conteúdo para revisão jurídica do time.
+
+### Corrigido
+
+- **CORS com os domínios de produção custom** — `app.fixyou.nuvempro.com` e `admin.fixyou.nuvempro.com` fixados na allowlist do `server.js` como rede de segurança (além de já virem de `FRONTEND_URL`/`ADMIN_FRONTEND_URL`). Evita quebra do login por CORS se um env for limpo. (A causa do "Erro ao fazer login" após a migração de domínio era o CORS não liberar o novo domínio do admin.)
+- **UX do login do admin** (`adminApi.js`) — o interceptor não redireciona mais para `/login` quando o usuário **já está** no login (o redirect recarregava a página e apagava a mensagem de erro antes de ser lida). Agora "Credenciais inválidas" fica visível. Adicionado `timeout` de 20s no cliente axios para falhar de forma graciosa em vez de "Entrando..." eterno.
+
+---
+
 ## [1.10.0] - 2026-09-08
 
 ### Adicionado

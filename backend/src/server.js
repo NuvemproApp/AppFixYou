@@ -35,6 +35,12 @@ app.use('/storefront', storefrontRouter);
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   process.env.ADMIN_FRONTEND_URL,
+  // Domínios de produção (custom) — fixos aqui como rede de segurança: mesmo que
+  // FRONTEND_URL/ADMIN_FRONTEND_URL sejam limpos por engano, o login do admin e o
+  // app não quebram por CORS.
+  'https://app.fixyou.nuvempro.com',
+  'https://admin.fixyou.nuvempro.com',
+  // Legado Vercel — mantido durante a transição (deploys de preview usam *.vercel.app).
   'https://fixyou-front.vercel.app',
   'https://fixyou-admin.vercel.app',
 ]
