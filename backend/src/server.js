@@ -27,6 +27,12 @@ app.use(helmet());
 const storefrontRouter = require('./routes/storefront');
 app.use('/storefront', storefrontRouter);
 
+// ─── NubeSDK: script do app (/widget/app.js), página do iframe e captura da
+// personalização. Também libera framing/CORP/CORS internamente. Antes do CORS
+// estrito pelo mesmo motivo da vitrine.
+const widgetRouter = require('./routes/widget');
+app.use('/widget', widgetRouter);
+
 // ─── CORS
 // FRONTEND_URL e ADMIN_FRONTEND_URL podem conter uma lista de origens separadas
 // por vírgula. As URLs *.vercel.app ficam explícitas porque é o domínio que a

@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FixYou</title>
+  <style>
+    /* Transparente e SEM min-height:100% (senão o body preenche o iframe e trava o autoresize). */
+    html, body { margin: 0; background: transparent; }
+    body { font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #333; }
+    #fx-widget { padding: 4px 0 16px; box-sizing: border-box; }
+    .fx-elemento { padding: 0 0 14px; box-sizing: border-box; }
+    .fx-label { font-weight: 600; font-size: .88rem; display: block; margin-bottom: 6px; }
+    .fx-input-texto, .fx-select {
+      width: 100%; max-width: 420px; box-sizing: border-box; padding: 8px 12px;
+      font-size: 14px; border: 1px solid #ccc; border-radius: 6px; background: #fff; color: #333;
+    }
+    #fx-img-preview { max-width: 100%; height: auto; display: none; border-radius: 6px; margin-top: 4px; }
+    .fx-legend { display: none; margin: 6px 0 0; font-size: .75em; opacity: .65; }
+    .fx-add {
+      width: 100%; max-width: 420px; margin-top: 8px; padding: 12px 16px; font-size: 15px;
+      font-weight: 600; color: #fff; background: #2563eb; border: none; border-radius: 8px;
+      cursor: pointer; display: none;
+    }
+    .fx-add:disabled { opacity: .7; cursor: default; }
+    .fx-hint { display: none; margin-top: 6px; font-size: .78em; color: #b45309; }
+  </style>
+</head>
+<body>
+  <div id="fx-widget"></div>
+  <script>
+  (function () {
+    'use strict';
+
+    // Contexto vem da URL (o iframe cross-origin não tem window.LS): o path é
+    // /widget/<storeId>/products/<productId>/page e customerId vem na query.
+    var m = String(location.pathname).match(/\/widget\/([^/]+)\/products\/([^/]+)\/page/);
+    var STORE_ID = m ? m[1] : '';
+    var PRODUCT_ID = m ? decodeURIComponent(m[2]) : '';
+    var CUSTOMER_ID = new URLSearchParams(location.search).get('customerId') || '';
+    var EMBEDDED = window.parent && window.parent !== window;
+
+    if (!STORE_ID || !PRODUCT_ID) return;
+
+    var FIELD_ORDER = ['fontes', 'coresDeFonte', 'icones', 'imagensDeFundo', 'conjuntosDeCores', 'patterns'];
+    var FIELD_LABEL = {
+      fontes: 'Fonte', coresDeFonte: 'Cor de fonte', icones: 'Ícone',
+      imagensDeFundo: 'Imagem de fundo', conjuntosDeCores: 'Conjunto de cores', patterns: 'Pattern'
+    };
+    var IMG_PARAM = {
+      fontes: 'fonte', coresDeFonte: 'corDeFonte', icones: 'icone',
+      imagensDeFundo: 'fundo', conjuntosDeCores: 'conjuntoDeCores', patterns: 'pattern'
+    };
+    var TEXT_LABEL = 'Nome';
+
+    var root = document.getElementById('fx-widget');
+    var selects = [];
+    var textInput, img, legend, addBtn, hint;
+    var debTimer;
+
+    function debounce(fn, ms) { clearTimeout(debTimer); debTimer = setTimeout(fn, ms || 350); }
+
+    function buildFields(campos) {
+      // Texto (sempre primeiro, default preenchido)
+      var tb = document.createElement('div'); tb.className = 'fx-elemento';
+      var tl = document.createElement('label'); tl.className = 'fx-label'; tl.textContent = TEXT_LABEL + ' *'; tb.appendChild(tl);
+      textInput = document.createElement('input'); textInput.type = 'text'; textInput.className = 'fx-input-texto';
+      textInput.value = TEXT_LABEL; tb.appendChild(textInput); root.appendChild(tb);
+
+      for (var i = 0; i < FIELD_ORDER.length; i++) {
+        var cat = FIELD_ORDER[i]; var itens = campos[cat];
+        if (!itens || !itens.length) continue;
+        var box = document.createElement('div'); box.className = 'fx-elemento';
+        var lbl = document.createElement('label'); lbl.className = 'fx-label'; lbl.textContent = FIELD_LABEL[cat] + ' *'; box.appendChild(lbl);
+        var sel = document.createElement('select'); sel.className = 'fx-select';
+        for (var k = 0; k < itens.length; k++) {
+          var opt = document.createElement('option');
+          opt.value = itens[k].titulo; opt.textContent = itens[k].titulo;
+          opt.setAttribute('data-id', String(itens[k].id));
+          sel.appendChild(opt);
+        }
+        box.appendChild(sel); root.appendChild(box);
+        selects.push({ categoria: cat, label: FIELD_LABEL[cat], el: sel });
+      }
+
+      img = document.createElement('img'); img.id = 'fx-img-preview'; root.appendChild(img);
+      legend = document.createElement('small'); legend.className = 'fx-legend';
+      legend.textContent = 'Pré-visualização da personalização'; root.appendChild(legend);
+
+      addBtn = document.createElement('button'); addBtn.type = 'button'; addBtn.className = 'fx-add';
+      addBtn.textContent = 'Adicionar ao carrinho'; root.appendChild(addBtn);
+      hint = document.createElement('div'); hint.className = 'fx-hint';
+      hint.textContent = 'Preencha todos os campos para adicionar.'; root.appendChild(hint);
+
+      root.addEventListener('input', function () { debounce(onChange, 300); });
+      root.addEventListener('change', function () { debounce(onChange, 300); });
+      addBtn.addEventListener('click', onAdd);
+    }
+
+    function currentIds() {
+      var ids = {};
+      for (var i = 0; i < selects.length; i++) {
+        var o = selects[i].el.options[selects[i].el.selectedIndex];
+        ids[IMG_PARAM[selects[i].categoria]] = o ? o.getAttribute('data-id') : '';
+      }
+      return ids;
+    }
+    function currentProps() {
+      var props = {}; var t = (textInput.value || '').trim();
+      if (t) props[TEXT_LABEL] = t;
+      for (var i = 0; i < selects.length; i++) {
+        if (selects[i].el.value) props[selects[i].label] = selects[i].el.value;
+      }
+      return props;
+    }
+    function imageUrl(texto, ids) {
+      var u = '/storefront/' + STORE_ID + '/products/' + encodeURIComponent(PRODUCT_ID) +
+              '/personalized-image?texto=' + encodeURIComponent(texto);
+      for (var key in ids) { if (ids.hasOwnProperty(key) && ids[key]) u += '&' + key + '=' + encodeURIComponent(ids[key]); }
+      return u;
+    }
+    function isComplete() {
+      if (!(textInput.value || '').trim()) return false;
+      for (var i = 0; i < selects.length; i++) { if (!selects[i].el.value) return false; }
+      return true;
+    }
+
+    function onChange() {
+      if (!isComplete()) {
+        img.style.display = 'none'; legend.style.display = 'none';
+        addBtn.style.display = 'none'; hint.style.display = 'block';
+        return;
+      }
+      hint.style.display = 'none';
+      img.setAttribute('src', imageUrl((textInput.value || '').trim(), currentIds()));
+      img.style.display = 'block'; legend.style.display = 'block';
+      addBtn.style.display = 'block';
+    }
+
+    function onAdd() {
+      if (!isComplete() || !EMBEDDED) return;
+      var original = addBtn.textContent;
+      addBtn.disabled = true; addBtn.textContent = 'Adicionando...';
+      // 1) grava a personalização no backend (pending) — casada com o pedido depois
+      fetch('/widget/' + STORE_ID + '/products/' + encodeURIComponent(PRODUCT_ID) + '/personalization', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ texto: (textInput.value || '').trim(), props: currentProps(), customerId: CUSTOMER_ID || null })
+      }).catch(function () { /* best-effort: mesmo se falhar, adiciona ao carrinho */ })
+        .then(function () {
+          // 2) pede pro app (worker) adicionar ao carrinho via cart:add nativo
+          window.parent.postMessage({ type: 'fx:addToCart', productId: String(PRODUCT_ID), quantity: 1 }, '*');
+          addBtn.textContent = '✓ Adicionado!';
+          setTimeout(function () { addBtn.textContent = original; addBtn.disabled = false; }, 2200);
+        });
+    }
+
+    // ── Autoresize: mede o CONTEÚDO REAL (não documentElement, que infla). ──
+    var lastH = 0;
+    function postHeight() {
+      var h = 0;
+      if (root && root.getBoundingClientRect().height > 0) {
+        h = Math.ceil(root.getBoundingClientRect().bottom + (window.pageYOffset || 0)) + 12;
+      }
+      if (!h) h = document.body ? document.body.scrollHeight : 0;
+      if (h && h !== lastH && EMBEDDED) { lastH = h; window.parent.postMessage({ type: 'resize', height: h }, '*'); }
+    }
+    window.addEventListener('load', postHeight);
+    window.addEventListener('resize', postHeight);
+    if (typeof ResizeObserver !== 'undefined') { try { new ResizeObserver(postHeight).observe(document.documentElement); } catch (e) {} }
+    var ticks = 0, iv = setInterval(function () { postHeight(); if (++ticks > 40) clearInterval(iv); }, 500);
+
+    // ── Carrega a config e monta ──
+    fetch('/storefront/' + STORE_ID + '/products/' + encodeURIComponent(PRODUCT_ID) + '/config')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data || !data.enabled || !data.campos) { postHeight(); return; }
+        buildFields(data.campos);
+        onChange();
+        postHeight();
+      })
+      .catch(function () { postHeight(); });
+  })();
+  </script>
+</body>
+</html>
