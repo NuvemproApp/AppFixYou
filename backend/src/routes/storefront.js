@@ -125,6 +125,61 @@ router.get('/:storeId/products/:productId/config', async (req, res) => {
   }
 });
 
+// ─── GET /storefront/:storeId/personalizable-ids ───────────────────────────
+// Lista os productIds (Nuvemshop) que têm personalização ATIVA/completa nesta
+// loja. Usado pelo widget NubeSDK no `cart:validate` (backstop): bloqueia o
+// checkout de um produto personalizável que entrou no carrinho sem a
+// personalização (ex.: quick-add fora da página de produto). Mesma lógica de
+// "enabled" do /config, agregada por produto. Cacheado por loja (TTL curto).
+const _idsCache = new Map();
+router.get('/:storeId/personalizable-ids', async (req, res) => {
+  try {
+    const store = await findStore(req.params.storeId);
+    if (!store) return res.json({ ids: [] });
+
+    const cached = sfCacheGet(_idsCache, String(store.id));
+    if (cached !== undefined) {
+      res.setHeader('Cache-Control', 'public, max-age=60');
+      return res.json({ ids: cached });
+    }
+
+    const pps = await prisma.productPersonalization.findMany({
+      where: { storeId: store.id },
+      select: { productId: true, modelo: true },
+    });
+    if (!pps.length) { sfCacheSet(_idsCache, String(store.id), []); return res.json({ ids: [] }); }
+
+    const selected = await prisma.productPersonalizationItem.findMany({
+      where: { storeId: store.id },
+      include: { personalizationItem: { select: { categoria: true, ativo: true } } },
+    });
+    const activeCatsByProduct = new Map();
+    for (const s of selected) {
+      const it = s.personalizationItem;
+      if (!it || !it.ativo) continue;
+      if (!activeCatsByProduct.has(s.productId)) activeCatsByProduct.set(s.productId, new Set());
+      activeCatsByProduct.get(s.productId).add(it.categoria);
+    }
+
+    const ids = [];
+    for (const pp of pps) {
+      const cats = MODELO_CATEGORIAS[pp.modelo] || [];
+      const have = activeCatsByProduct.get(String(pp.productId)) || new Set();
+      if (cats.length && cats.every((c) => have.has(c))) {
+        const n = Number(pp.productId);
+        if (Number.isFinite(n)) ids.push(n);
+      }
+    }
+
+    sfCacheSet(_idsCache, String(store.id), ids);
+    res.setHeader('Cache-Control', 'public, max-age=60');
+    res.json({ ids });
+  } catch (err) {
+    console.error('[storefront] personalizable-ids:', err.message);
+    res.json({ ids: [] });
+  }
+});
+
 // ─── GET /storefront/:storeId/products/:productId/personalized-image ────────
 // Gera (ou reaproveita do cache em memória) a imagem composta com base nos
 // itens escolhidos pelo cliente. Sempre responde image/jpeg — nunca um erro

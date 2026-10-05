@@ -1,17 +1,31 @@
 import { defineConfig } from "tsup";
 
-// Mesma config do template oficial create-nube-app (minimal-ui): ESM minificado,
-// com o @tiendanube/nube-sdk-ui embutido (noExternal). Saída: dist/main.min.js —
-// é esse arquivo que vai pro backend (public/nubesdk.min.js) e cuja URL é
-// registrada como o script do app no Portal de Parceiros.
+// URL pública do backend (Railway) que serve os endpoints /storefront/* e
+// /widget/*. Injetada no bundle em build-time via esbuild `define`.
+// Override: NUBE_API_BASE=... npm run build
+const API_BASE = process.env.NUBE_API_BASE || "https://api.fixyou.nuvempro.com";
+
+// Mesmo setup do storefront-nube do Alugue Mais: JSX nativo (nube-sdk-jsx),
+// bundle único ESM minificado. Saída: dist/main.min.js → backend/public/nubesdk.min.js
+// (servido em /widget/app.js e registrado no Portal de Parceiros).
 export default defineConfig({
-  entry: ["./src/main.ts"],
-  clean: true,
+  entry: ["src/main.tsx"],
   format: ["esm"],
-  dts: false,
-  outDir: "./dist",
+  target: "esnext",
+  clean: true,
   minify: true,
+  bundle: true,
   sourcemap: false,
-  noExternal: ["@tiendanube/nube-sdk-ui"],
+  splitting: false,
+  skipNodeModulesBundle: false,
+  define: {
+    NUBE_API_BASE: JSON.stringify(API_BASE),
+  },
+  esbuildOptions(options) {
+    options.alias = {
+      "@tiendanube/nube-sdk-jsx/dist/jsx-runtime":
+        "@tiendanube/nube-sdk-jsx/jsx-runtime",
+    };
+  },
   outExtension: ({ options }) => ({ js: options.minify ? ".min.js" : ".js" }),
 });

@@ -8,8 +8,9 @@
     "build": "tsup"
   },
   "devDependencies": {
-    "@tiendanube/nube-sdk-types": "^0.98.0",
-    "@tiendanube/nube-sdk-ui": "^0.22.1",
+    "@tiendanube/nube-sdk-jsx": "^0.22.0",
+    "@tiendanube/nube-sdk-types": "^0.103.0",
+    "@tiendanube/nube-sdk-ui": "^0.23.0",
     "tsup": "^8.3.0",
     "typescript": "^5.6.2"
   }

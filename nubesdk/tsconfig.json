@@ -1,8 +1,12 @@
 {
   "compilerOptions": {
     "target": "es2022",
+    "jsx": "react-jsx",
+    "jsxImportSource": "@tiendanube/nube-sdk-jsx",
     "module": "esnext",
     "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,

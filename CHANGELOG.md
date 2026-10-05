@@ -6,6 +6,18 @@ versionado em [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [1.14.0] - 2026-10-05
+
+### Alterado
+
+- **Widget NubeSDK reescrito no padrão do Alugue Mais — personalização NATIVA por item (properties de linha).** Descoberta decisiva estudando o `storefront-nube` do Alugue Mais: o `cart:add` do NubeSDK **leva `properties` quando são um OBJETO** `{ "Nome": "...", "Fonte": "..." }` (a forma array `[{name,value}]` que eu havia testado é descartada). Com isso a personalização persiste no item do carrinho **e chega ao pedido** (`products[].properties`) de forma **nativa** — aparece no painel da Nuvemshop por item, sem webhook/owner_note/escopo de pedidos.
+  - **Botão único** — intercepta o "Comprar"/"Adicionar" NATIVO via `cart:before_update` (com `config:set { handle_cart_before_update: true }`): cancela o add nativo e dispara o nosso `cart:add` com as `properties` + a quantidade nativa (delta) + a variante. Relabel do botão nativo via `nube.api.getCustomization()` ("Preencha a personalização" ↔ "Adicionar ao carrinho"). Fim do botão duplicado.
+  - **Carrinho** — mostra a personalização em cada item no slot repetível `before_line_item` (lê `item.properties`).
+  - **Checkout** — `cart:validate` bloqueia finalizar com um produto personalizável sem personalização (backstop), via novo endpoint `GET /storefront/:store/personalizable-ids`.
+  - **Visual** — campos nativos (`Field`/`Select`/`Image`) com JSX (`@tiendanube/nube-sdk-jsx`), card estilizado, no slot `before_product_detail_add_to_cart`.
+  - Build: `tsup` com `define: { NUBE_API_BASE }` + JSX (mesmo setup do Alugue Mais). Deps alinhadas: `nube-sdk-jsx@0.22`, `nube-sdk-ui@0.23`, `nube-sdk-types@0.103`.
+  - O caminho de `owner_note`/`order:add:extra`/captura do v1.13 fica **obsoleto** (a personalização agora é property nativa de linha). O webhook `order/created` segue registrado mas sem captura vira no-op.
+
 ## [1.13.1] - 2026-10-05
 
 ### Corrigido
