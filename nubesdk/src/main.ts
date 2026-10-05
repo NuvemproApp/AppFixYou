@@ -151,7 +151,12 @@ export function App(nube: NubeSDK) {
 
     if (variantId && productId) {
       const vid = variantId, pid = productId;
-      nube.send("cart:add", () => ({ cart: { items: [{ variant_id: vid, product_id: pid, quantity: 1 }] } }));
+      // TESTE: tentar levar as properties de linha (personalização) no cart:add.
+      // Forma array {name,value} = estrutura nativa de property da Nuvemshop.
+      const propsArr = Object.keys(props).map((k) => ({ name: k, value: props[k] }));
+      nube.send("cart:add", () => ({
+        cart: { items: [{ variant_id: vid, product_id: pid, quantity: 1, properties: propsArr } as any] },
+      }));
     }
 
     adding = false; added = true; renderNow();
