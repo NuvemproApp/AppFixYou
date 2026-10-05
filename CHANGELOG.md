@@ -6,6 +6,18 @@ versionado em [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [1.15.0] - 2026-10-05
+
+### Alterado
+
+- **Widget NubeSDK dual-mode por tema** (detecção via `state.store.theme`, whitelist `GATE_THEMES`). Validado **ao vivo** dirigindo o Chrome do lojista:
+  - **Temas com gate (ex.: Ipanema)** → intercepta o "Comprar" no `cart:before_update`, cancela o add e re-adiciona com as `properties` (igual Alugue Mais) → bloqueia sem personalização + personalização por item no carrinho/pedido.
+  - **Temas sem gate (ex.: Brasília, da loja demo)** → **não há como barrar** (comprovado: no Brasília o `proceed:false` do `cart:before_update` NÃO cancela o add, o `cart:validate` NÃO é chamado no "Iniciar compra", e nenhum app NubeSDK carrega no checkout v3). Nesses temas o app **captura** a personalização (fields + preview) e envia ao pedido via **`order:add:extra`** (`Order.extra`), persistida em `asyncLocalStorage`. A mensagem do painel é honesta por modo (sem "obrigatório" onde não trava).
+  - Default seguro = modo captura (nunca duplica item).
+- **Dev local**: `npm run dev` (tsup watch + `serve` com `serve.json` no-cache) + override via extensão NubeSDK Devtools (`sessionStorage` `nube-devtools-application-server`). Build JSX com `@tiendanube/nube-sdk-jsx`.
+
+> Limite de plataforma confirmado: no tema Brasília a vitrine nova **não roteia** o add-to-cart nem o checkout pelo NubeSDK, então **forçar** a personalização só é possível em temas família Ipanema. Fora deles, o fluxo é captura + dado no pedido.
+
 ## [1.14.1] - 2026-10-05
 
 ### Corrigido

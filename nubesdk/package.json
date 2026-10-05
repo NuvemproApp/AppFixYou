@@ -6,7 +6,7 @@
   "description": "App NubeSDK do FixYou — widget de personalização nativo (campos + preview) na página de produto; interceta o botão nativo e adiciona ao carrinho com properties de linha (padrão Alugue Mais).",
   "scripts": {
     "build": "tsup",
-    "dev": "concurrently -k -n BUILD,SERVE -c blue,green \"tsup --sourcemap inline --watch\" \"serve dist -l 8080 --cors\"",
+    "dev": "concurrently -k -n BUILD,SERVE -c blue,green \"tsup --sourcemap inline --watch\" \"serve dist -l 8080 --cors -c ../serve.json\"",
     "typecheck": "tsc --noEmit",
     "copy": "cp dist/main.min.js ../backend/public/nubesdk.min.js && echo copiado para backend/public/nubesdk.min.js"
   },
