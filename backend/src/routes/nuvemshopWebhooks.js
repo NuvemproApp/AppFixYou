@@ -2,6 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const prisma = require('../lib/prisma');
 const { markPartnerUninstalled } = require('../lib/partners');
+const { fetchOrder, updateOrderOwnerNote } = require('../config/nuvemshop');
 
 const router = express.Router();
 
@@ -102,6 +103,111 @@ router.post('/customers/redact', (req, res) => {
 router.post('/customers/data_request', (req, res) => {
   console.log(`[nuvemshop][LGPD] customers/data_request store_id=${req.body?.store_id}`);
   res.status(200).json({ success: true, data: [] });
+});
+
+// ─── FixYou NubeSDK: casa as personalizações capturadas na vitrine com o pedido ─
+// No NubeSDK o cart:add não carrega properties de linha, então a personalização
+// é gravada (pending) quando o cliente adiciona ao carrinho e vinculada aqui ao
+// pedido. Correlação: mesma loja+produto, status pending, recente (24h), com
+// prioridade pra quem tem o mesmo customerId; FIFO por data; até `quantity` por
+// item de linha. É idempotente (retry do Stripe/Nuvemshop não duplica): só pega
+// pending e só anexa a nota se o bloco [FixYou] ainda não estiver nela.
+const CAPTURE_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+async function attachPersonalizationsToOrder(nuvemshopId, orderId) {
+  const store = await prisma.store.findUnique({
+    where: { nuvemshopId: String(nuvemshopId) },
+    select: { id: true, accessToken: true },
+  });
+  if (!store || !store.accessToken) return;
+
+  let order;
+  try {
+    order = await fetchOrder(nuvemshopId, store.accessToken, orderId);
+  } catch (err) {
+    console.warn('[nuvemshop] orders/created: fetch do pedido falhou:', err.message);
+    throw err; // deixa o Nuvemshop reenviar
+  }
+
+  const products = Array.isArray(order.products) ? order.products : [];
+  if (!products.length) return;
+  const orderCustomerId = order.customer && order.customer.id ? String(order.customer.id) : null;
+  const since = new Date(Date.now() - CAPTURE_WINDOW_MS);
+
+  const matched = []; // { capture, lineName }
+  const usedIds = {};
+  for (const li of products) {
+    const productId = String(li.product_id || '');
+    if (!productId) continue;
+    const qty = Number(li.quantity) || 1;
+
+    const candidates = await prisma.personalizationCapture.findMany({
+      where: { storeId: store.id, productId, status: 'pending', createdAt: { gte: since } },
+      orderBy: { createdAt: 'asc' },
+      take: 50,
+    });
+
+    const ranked = candidates
+      .filter((c) => !usedIds[c.id])
+      .sort((a, b) => {
+        const am = orderCustomerId && a.customerId === orderCustomerId ? 0 : 1;
+        const bm = orderCustomerId && b.customerId === orderCustomerId ? 0 : 1;
+        if (am !== bm) return am - bm;
+        return a.createdAt - b.createdAt;
+      });
+
+    for (const c of ranked.slice(0, qty)) {
+      usedIds[c.id] = true;
+      matched.push({ capture: c, lineName: li.name || productId });
+    }
+  }
+
+  if (!matched.length) return;
+
+  await prisma.personalizationCapture.updateMany({
+    where: { id: { in: matched.map((m) => m.capture.id) } },
+    data: { status: 'matched', orderId: String(orderId), matchedAt: new Date() },
+  });
+
+  // Anexa o resumo ao owner_note do pedido (idempotente pelo marcador [FixYou]).
+  const lines = matched.map((m) => {
+    const p = m.capture.props || {};
+    const parts = Object.keys(p).map((k) => k + ': ' + p[k]);
+    return '• ' + m.lineName + ' — ' + parts.join(' | ');
+  });
+  const block = '[FixYou] Personalizacoes:\n' + lines.join('\n');
+  const existing = String(order.owner_note || '').trim();
+  if (existing.indexOf('[FixYou] Personalizacoes') === -1) {
+    const note = (existing ? existing + '\n\n' + block : block).slice(0, 4000);
+    try {
+      await updateOrderOwnerNote(nuvemshopId, store.accessToken, orderId, note);
+    } catch (err) {
+      console.warn('[nuvemshop] orders/created: update do owner_note falhou:', err.message);
+    }
+  }
+}
+
+/**
+ * POST /webhooks/orders/created — pedido criado. Casa as personalizações.
+ * Registre esta URL para o evento `order/created` no Portal de Parceiros.
+ */
+router.post('/orders/created', async (req, res) => {
+  if (checkHmac(req) !== true) {
+    console.warn('[nuvemshop] orders/created sem HMAC válido — ignorado');
+    return res.status(401).json({ error: 'Invalid HMAC.' });
+  }
+  const storeId = req.body?.store_id;
+  const orderId = req.body?.id;
+  console.log(`[nuvemshop] orders/created store_id=${storeId} order=${orderId}`);
+  if (!storeId || !orderId) return res.status(200).json({ success: true });
+  try {
+    await attachPersonalizationsToOrder(storeId, orderId);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    // 500 → Nuvemshop reenvia (o processamento é idempotente)
+    console.error('[nuvemshop] orders/created falhou:', err.message);
+    res.status(500).json({ error: 'processing_failed' });
+  }
 });
 
 module.exports = router;

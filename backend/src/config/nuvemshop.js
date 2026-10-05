@@ -48,10 +48,33 @@ async function fetchStoreInfo(storeNuvemshopId, accessToken) {
   return response.data;
 }
 
+/**
+ * Busca um pedido (com os line items em `products`: product_id, variant_id,
+ * quantity, name, properties). Usado pelo webhook order/created para casar as
+ * personalizações capturadas na vitrine com o pedido.
+ */
+async function fetchOrder(storeNuvemshopId, accessToken, orderId) {
+  const client = createNuvemshopClient(storeNuvemshopId, accessToken);
+  const response = await client.get(`/orders/${orderId}`);
+  return response.data;
+}
+
+/**
+ * Sobrescreve a nota do lojista (`owner_note`) do pedido. O chamador deve
+ * fazer o append (ler a nota atual antes) — a API não tem append nativo.
+ */
+async function updateOrderOwnerNote(storeNuvemshopId, accessToken, orderId, ownerNote) {
+  const client = createNuvemshopClient(storeNuvemshopId, accessToken);
+  const response = await client.put(`/orders/${orderId}`, { owner_note: ownerNote });
+  return response.data;
+}
+
 module.exports = {
   exchangeCodeForToken,
   createNuvemshopClient,
   fetchStoreInfo,
+  fetchOrder,
+  updateOrderOwnerNote,
   NUVEMSHOP_AUTH_URL,
   NUVEMSHOP_API_BASE,
 };

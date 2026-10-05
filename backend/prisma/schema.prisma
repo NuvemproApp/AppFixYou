@@ -31,6 +31,7 @@ model Store {
   productPersonalizations ProductPersonalization[]
   personalizationItems    PersonalizationItem[]
   productPersonalizationItems ProductPersonalizationItem[]
+  personalizationCaptures PersonalizationCapture[]
   @@map("stores")
 }
 
@@ -168,6 +169,30 @@ model FontCatalogItem {
   createdAt  DateTime @default(now())
 
   @@map("font_catalog_items")
+}
+
+// ─── FixYou NubeSDK: captura da personalização na vitrine ──────────────────
+// No NubeSDK o widget roda num iframe cross-origin e o cart:add não suporta
+// properties de linha — então a personalização é gravada aqui no "Adicionar ao
+// carrinho" (pending) e casada com o PEDIDO pelo webhook order/created
+// (correlação por storeId+productId [+customerId], FIFO por data). Ao casar,
+// vira status=matched + orderId, e o resumo é anexado ao owner_note do pedido.
+model PersonalizationCapture {
+  id         Int      @id @default(autoincrement())
+  storeId    Int
+  store      Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  productId  String   // ID do produto na Nuvemshop
+  customerId String?  // ID do cliente na Nuvemshop (quando logado) — afina a correlação
+  texto      String   // texto da personalização
+  props      Json     // { "Nome": "...", "Fonte": "...", ... } — rótulos legíveis
+  status     String   @default("pending") // pending | matched
+  orderId    String?  // ID do pedido na Nuvemshop (quando casado)
+  createdAt  DateTime @default(now())
+  matchedAt  DateTime?
+
+  @@index([storeId, productId, status, createdAt], map: "personalization_captures_lookup_idx")
+  @@index([storeId, orderId], map: "personalization_captures_order_idx")
+  @@map("personalization_captures")
 }
 
 // ═══ ADMIN ═══

@@ -6,6 +6,21 @@ versionado em [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [1.11.0] - 2026-10-02
+
+### Adicionado
+
+- **Migração do widget de vitrine para o NubeSDK** — o FixYou agora roda como app NubeSDK (worker + iframe), não mais como script clássico no top-window.
+  - **App NubeSDK** (`nubesdk/`, TypeScript + tsup): renderiza o iframe de personalização no slot `after_product_detail_add_to_cart` e faz a ponte `fx:addToCart` → `cart:add` nativo. Build → `nubesdk/dist/main.min.js`, copiado para `backend/public/nubesdk.min.js` e servido em **`/widget/app.js`** (URL a registrar no Portal de Parceiros).
+  - **Página do iframe** (`backend/public/widget.html` + rota `GET /widget/:storeId/products/:productId/page`): campos de personalização + preview da imagem (reusa `/storefront/.../config` e `/personalized-image`), autoresize medindo o conteúdo real, e botão próprio de "Adicionar ao carrinho". Libera framing/CORP/CORS (o `helmet()` global bloquearia).
+  - **Vínculo personalização → pedido via backend** (o `cart:add` do NubeSDK não carrega properties de linha): `POST /widget/:storeId/products/:productId/personalization` grava a captura (pending); o webhook **`order/created`** (`POST /webhooks/orders/created`) busca o pedido (Admin API), correlaciona (loja+produto [+customerId], FIFO por data, janela 24h), marca `matched` e anexa o resumo ao `owner_note` do pedido. Idempotente.
+  - **Schema**: novo modelo `PersonalizationCapture` + migration `0010`.
+  - Novas rotas exigem registrar no Portal de Parceiros: o **script do app** (`/widget/app.js`) e o **webhook `order/created`** (`/webhooks/orders/created`).
+
+> Requer migração no deploy (`migrate deploy`). **Teste ao vivo necessário**: o sandbox do NubeSDK não simula o runtime cross-origin — validar na loja real (variante selecionada no `cart:add`, personalização aparecendo no `owner_note` do pedido).
+
+---
+
 ## [1.10.1] - 2026-09-17
 
 ### Adicionado
