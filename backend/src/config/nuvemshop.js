@@ -69,12 +69,61 @@ async function updateOrderOwnerNote(storeNuvemshopId, accessToken, orderId, owne
   return response.data;
 }
 
+/**
+ * URL pública do backend (onde a Nuvemshop entrega os webhooks).
+ */
+function backendUrl() {
+  return (process.env.BACKEND_URL || 'https://api.fixyou.nuvempro.com').replace(/\/+$/, '');
+}
+
+/**
+ * Registra (idempotente) os webhooks que o app precisa receber da Nuvemshop.
+ * Hoje: `order/created` → POST /webhooks/orders/created (usado para casar a
+ * personalização capturada na vitrine com o pedido e escrever o resumo no
+ * owner_note). Best-effort: lista os existentes e só cria o que falta.
+ *
+ * @returns {Promise<{created:string[], existing:string[], errors:string[]}>}
+ */
+async function registerAppWebhooks(storeNuvemshopId, accessToken) {
+  const client = createNuvemshopClient(storeNuvemshopId, accessToken);
+  const result = { created: [], existing: [], errors: [] };
+
+  const desired = [
+    { event: 'order/created', url: `${backendUrl()}/webhooks/orders/created` },
+  ];
+
+  let current = [];
+  try {
+    const res = await client.get('/webhooks');
+    current = Array.isArray(res.data) ? res.data : [];
+  } catch (err) {
+    // Sem a lista seguimos tentando criar (duplicado retorna erro tratável).
+    result.errors.push(`list: ${err.response?.status || err.message}`);
+  }
+
+  for (const w of desired) {
+    const hit = current.find((c) => c.event === w.event && c.url === w.url);
+    if (hit) { result.existing.push(w.event); continue; }
+    try {
+      await client.post('/webhooks', w);
+      result.created.push(w.event);
+    } catch (err) {
+      // 422 costuma ser "já existe" (event+url duplicado) → trata como existente.
+      const status = err.response?.status;
+      if (status === 422) result.existing.push(w.event);
+      else result.errors.push(`${w.event}: ${status || err.message}`);
+    }
+  }
+  return result;
+}
+
 module.exports = {
   exchangeCodeForToken,
   createNuvemshopClient,
   fetchStoreInfo,
   fetchOrder,
   updateOrderOwnerNote,
-  NUVEMSHOP_AUTH_URL,
+  registerAppWebhooks,
   NUVEMSHOP_API_BASE,
+  NUVEMSHOP_AUTH_URL,
 };

@@ -6,6 +6,17 @@ versionado em [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [1.13.0] - 2026-10-05
+
+### Alterado
+
+- **Widget NubeSDK: um único botão de compra + personalização nativa no carrinho e no pedido.** Reescrita do worker (`nubesdk/src/main.ts`) guiada por teste ao vivo: o `cart:add` do NubeSDK **não encaminha `properties` de linha** (verificado — o item do carrinho fica sem o campo) e `window.LS.addToCartEnhanced` não existe no worker. A personalização passou a trafegar pelos canais **nativos** disponíveis:
+  - **Botão único (#1)** — removido o botão próprio "Adicionar ao carrinho". Quem adiciona é o **"Comprar" nativo do tema** (com o seletor de quantidade). A PDP agora mostra só os campos + preview + um aviso ("clique em COMPRAR acima"). Fim do botão duplicado.
+  - **Personalização salva no `asyncLocalStorage`** (chave por produto, TTL 2h) a cada alteração — fonte da verdade cross-página (`nube.getBrowserAPIs().asyncLocalStorage`).
+  - **No carrinho (#2)** — o app lê o storage e renderiza um bloco com a personalização de cada item no slot `after_line_items` (o cliente vê o que personalizou).
+  - **No pedido (#3)** — `order:add:extra` grava a personalização como **metadado nativo do pedido** (`order.extra`) no checkout; e a captura (`POST .../personalization`) é disparada ao adicionar/checkout para o webhook `order/created` escrever o resumo por item no `owner_note` (painel da Nuvemshop).
+- **Registro automático do webhook `order/created`** (`config/nuvemshop.js` → `registerAppWebhooks`, idempotente/best-effort) no callback OAuth (`auth.js`). Sem isso a Nuvemshop nunca chamava o endpoint — por isso pedidos anteriores não recebiam o resumo no `owner_note`.
+
 ## [1.12.0] - 2026-10-05
 
 ### Alterado

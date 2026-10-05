@@ -2,7 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const prisma = require('../lib/prisma');
 const { AppError } = require('../lib/errors');
-const { exchangeCodeForToken, fetchStoreInfo } = require('../config/nuvemshop');
+const { exchangeCodeForToken, fetchStoreInfo, registerAppWebhooks } = require('../config/nuvemshop');
 const { requireAuth } = require('../middleware/auth');
 const { authLimiter } = require('../middleware/rateLimiter');
 const { validatePartner, registerPartnerLead, normalizeCode } = require('../lib/partners');
@@ -70,6 +70,15 @@ router.get('/callback', authLimiter, async (req, res, next) => {
       update: {},
       create: { storeId: store.id, status: 'none' },
     });
+
+    // Registra o webhook order/created (idempotente, best-effort — não atrasa
+    // nem quebra o OAuth). Necessário para casar a personalização com o pedido.
+    registerAppWebhooks(userId, accessToken)
+      .then((r) => {
+        if (r.created.length) console.log(`[auth] webhooks criados p/ loja ${userId}:`, r.created.join(', '));
+        if (r.errors.length) console.warn(`[auth] webhooks com erro p/ loja ${userId}:`, r.errors.join('; '));
+      })
+      .catch((err) => console.warn('[auth] registerAppWebhooks falhou:', err?.message || err));
 
     // ─── Link de indicação (referral): state = código do parceiro ─────────────
     // O painel Partners gera links .../authorize?state=CODIGO. Se o state for um
