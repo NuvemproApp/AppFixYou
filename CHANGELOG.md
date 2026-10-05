@@ -6,6 +6,18 @@ versionado em [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [1.12.0] - 2026-10-05
+
+### Alterado
+
+- **Widget NubeSDK agora é NATIVO (sem iframe)** — em vez de renderizar um iframe, o app monta os campos de personalização **inline** com os componentes nativos do NubeSDK (`field` do Nome, `select` por categoria, `img` do preview, `button` de "Adicionar ao carrinho") no slot `after_product_detail_add_to_cart` — como o widget clássico fazia inline. Fica vendável/integrado ao tema, não um iframe embutido.
+  - Confirmado na doc/SDK: o **worker pode fazer `fetch`** (o devtools do NubeSDK rastreia "fetch made by an app's worker") e existem os componentes nativos `select`/`button`/`img`/`field`. O `main.ts` passou a: buscar a config via `fetch`, renderizar os campos nativos, atualizar o preview (`img` apontando pro endpoint de imagem) e, no clique do botão, gravar a captura (`POST`) + disparar `cart:add`.
+  - **Removido** o iframe e a página `backend/public/widget.html` + a rota `GET /widget/.../page` (obsoletos). Mantidos: `GET /widget/app.js` (script do app), `POST /widget/.../personalization` (captura) e o webhook `order/created`.
+
+> Teste ao vivo (o sandbox não simula o runtime): campos nativos aparecendo na página de produto, preview atualizando, `cart:add` com a variante certa, e a personalização no `owner_note`. Pré-requisitos: app instalado na loja + produto configurado + evento do script em `onload`.
+
+---
+
 ## [1.11.0] - 2026-10-02
 
 ### Adicionado
