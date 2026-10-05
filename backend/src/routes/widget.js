@@ -30,11 +30,8 @@ router.get('/app.js', (_req, res) => {
   res.sendFile(path.join(PUBLIC, 'nubesdk.min.js'));
 });
 
-// ─── Página do widget (conteúdo do iframe) — contexto vem do próprio path/query.
-router.get('/:storeId/products/:productId/page', (_req, res) => {
-  res.type('html');
-  res.sendFile(path.join(PUBLIC, 'widget.html'));
-});
+// (A antiga página de iframe /products/:productId/page foi removida: o widget
+// agora é 100% nativo, renderizado pelos componentes do NubeSDK no worker.)
 
 // ─── Cache nuvemshopId → id interno (evita hit no DB a cada captura) ──────────
 const _storeCache = new Map();
