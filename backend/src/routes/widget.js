@@ -26,7 +26,7 @@ const PUBLIC = path.join(__dirname, '..', '..', 'public');
 // https://api.fixyou.nuvempro.com/widget/app.js
 router.get('/app.js', (_req, res) => {
   res.type('application/javascript');
-  res.setHeader('Cache-Control', 'public, max-age=300');
+  res.setHeader('Cache-Control', 'public, max-age=60');
   res.sendFile(path.join(PUBLIC, 'nubesdk.min.js'));
 });
 
