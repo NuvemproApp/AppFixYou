@@ -6,6 +6,12 @@ versionado em [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [1.13.1] - 2026-10-05
+
+### Corrigido
+
+- **Webhook `order/created`: correlação da personalização agora é por captura mais recente** (antes FIFO/mais antiga). Com a captura on-change, uma personalização antiga/obsoleta poderia "vencer" a atual; agora, mantida a prioridade por `customerId`, desempata pela **mais recente**. Evita que o `owner_note` do pedido receba uma personalização de teste/anterior.
+
 ## [1.13.0] - 2026-10-05
 
 ### Alterado

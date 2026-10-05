@@ -109,7 +109,7 @@ router.post('/customers/data_request', (req, res) => {
 // No NubeSDK o cart:add não carrega properties de linha, então a personalização
 // é gravada (pending) quando o cliente adiciona ao carrinho e vinculada aqui ao
 // pedido. Correlação: mesma loja+produto, status pending, recente (24h), com
-// prioridade pra quem tem o mesmo customerId; FIFO por data; até `quantity` por
+// prioridade pra quem tem o mesmo customerId; mais recente primeiro; até `quantity` por
 // item de linha. É idempotente (retry do Stripe/Nuvemshop não duplica): só pega
 // pending e só anexa a nota se o bloco [FixYou] ainda não estiver nela.
 const CAPTURE_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -153,7 +153,7 @@ async function attachPersonalizationsToOrder(nuvemshopId, orderId) {
         const am = orderCustomerId && a.customerId === orderCustomerId ? 0 : 1;
         const bm = orderCustomerId && b.customerId === orderCustomerId ? 0 : 1;
         if (am !== bm) return am - bm;
-        return a.createdAt - b.createdAt;
+        return b.createdAt - a.createdAt; // mais recente primeiro (evita captura obsoleta vencer)
       });
 
     for (const c of ranked.slice(0, qty)) {
