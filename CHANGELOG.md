@@ -6,6 +6,16 @@ versionado em [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [1.14.1] - 2026-10-05
+
+### Corrigido
+
+- **Widget: item duplicado + checkout travado.** O gate do botão passou a **injetar as `properties` no próprio item** no `cart:before_update` (retorna `{ cart: { items } }`) em vez de **cancelar + re-adicionar**. A estratégia antiga colidia com outros apps que também interceptam o carrinho (ex.: **SuperCampos**), gerando um item com personalização e outro sem — e o item "sem" travava o `cart:validate` (checkout). Agora é um único item, já com a personalização, e convive com outros apps de carrinho. *(worker em `nubesdk/src/main.tsx`; build de produção gerado no fechamento do visual.)*
+
+### Removido
+
+- **Webhook `order/created` + `owner_note` + captura obsoletos.** Como a personalização agora é **property de linha nativa** (aparece no carrinho e no pedido por item), não há mais anotação no pedido. Removidos: a rota `POST /webhooks/orders/created` e `attachPersonalizationsToOrder`, o `registerAppWebhooks` (e a chamada no OAuth callback), `fetchOrder`/`updateOrderOwnerNote`, e o endpoint de captura `POST /widget/:store/products/:product/personalization`. Os webhooks `order/created` da loja demo foram desregistrados. *(A tabela `PersonalizationCapture` ficou órfã — pode ser dropada numa migration futura; escopo de pedidos `read_orders`/`write_orders` não é mais necessário.)*
+
 ## [1.14.0] - 2026-10-05
 
 ### Alterado

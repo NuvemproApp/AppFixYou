@@ -50,11 +50,6 @@ const OUR_LABELS = new Set<string>([TEXT_LABEL, ...Object.values(LABELS)]);
 
 type Campo = { id: number | string; titulo: string; posicao?: number };
 type Config = { enabled: boolean; modelo?: number; campos?: Record<string, Campo[]> };
-type BUPayload = {
-  request_id?: string;
-  action?: string;
-  item?: { product_id?: number; variant_id?: number | null; previous_quantity?: number; new_quantity?: number };
-};
 
 // ─── estado ───────────────────────────────────────────────────────────────────
 let nube: NubeSDK;
@@ -67,7 +62,6 @@ let sel: Record<string, string> = {};
 let msg = "";
 let tone: "ok" | "err" | "muted" = "muted";
 let addedMsg = "";
-let selfAdd = false;
 const personalizableIds = new Set<number>();
 
 // ─── helpers ────────────────────────────────────────────────────────────────────
@@ -104,37 +98,50 @@ function itemProps(item: any): Record<string, string> | null {
 }
 
 // ─── painel: campos + preview ────────────────────────────────────────────────────
+function labeledField(label: string, node: any) {
+  // O componente Field renderiza o label ABAIXO do input (inconsistente com o
+  // Select). Então controlamos o rótulo nós mesmos: Text acima + campo sem label.
+  return (
+    <Column style={{ gap: "4px", width: "100%" } as any}>
+      <Text style={{ fontSize: "13px", color: MUTED, fontWeight: "600" } as any}>{label}</Text>
+      {node}
+    </Column>
+  );
+}
+
 function buildBlock() {
   const kids: any[] = [];
   kids.push(<Text style={{ fontSize: "15px", fontWeight: "700", color: TEXT } as any}>Personalize seu produto</Text>);
 
-  kids.push(
+  kids.push(labeledField(
+    TEXT_LABEL + " *",
     <Field
       name="fx-nome"
-      label={TEXT_LABEL + " *"}
+      label=""
       value={texto}
       onChange={((d: any) => { texto = String(d.value ?? ""); relabelNativeButton(); }) as any}
       onBlur={(() => { renderBlock(); }) as any}
     />,
-  );
+  ));
 
   for (const cat of activeCampos()) {
     const opts = (config!.campos as Record<string, Campo[]>)[cat].map((it) => ({ label: it.titulo, value: String(it.id) }));
-    kids.push(
+    kids.push(labeledField(
+      LABELS[cat] + " *",
       <Select
         name={"fx-" + cat}
-        label={LABELS[cat] + " *"}
+        label=""
         value={sel[cat] || ""}
         options={opts}
         onChange={((d: any) => { sel[cat] = String(d.value ?? ""); renderBlock(); }) as any}
       />,
-    );
+    ));
   }
 
   if (complete()) {
     kids.push(
       <Image src={previewUrl()} alt="Pré-visualização da personalização"
-        style={{ maxWidth: "100%", height: "auto", borderRadius: "8px", border: "1px solid " + BORDER } as any} />,
+        style={{ maxWidth: "100%", height: "auto", borderRadius: "8px", marginTop: "2px" } as any} />,
     );
   }
 
@@ -151,9 +158,8 @@ function buildBlock() {
 
   return (
     <Column style={{
-      gap: "10px", padding: "14px", border: "1px solid " + BORDER, borderRadius: "14px",
-      background: "#ffffff", width: "100%", maxWidth: "360px", boxSizing: "border-box",
-      borderTop: "3px solid " + ACCENT,
+      gap: "12px", padding: "16px 0", borderTop: "1px solid #e5e7eb",
+      width: "100%", maxWidth: "420px", boxSizing: "border-box",
     } as any}>
       {kids}
     </Column>
@@ -181,44 +187,40 @@ function resetNativeButton() {
   if (c && typeof c.reset === "function") { try { c.reset("add-to-cart-button"); } catch (_e) { /* noop */ } }
 }
 
-// ─── intercepta o botão nativo: cancela sempre + adiciona com properties ──────────
-function respond(requestId: string, proceed: boolean) {
-  nube.send("cart:before_update:result", (() => ({ eventPayload: { request_id: requestId, proceed } })) as any);
+// ─── intercepta o botão nativo: INJETA as properties no item (sem re-add) ─────────
+// Mesma estratégia do SuperCampos: no cart:before_update, adiciona nossas
+// properties ao NOSSO item e deixa o add nativo seguir (validation:success).
+// NÃO cancela nem dispara um segundo cart:add — então NÃO duplica o item e
+// convive com outros apps que também mexem no carrinho (cada um injeta no mesmo
+// array de items). Se incompleto, bloqueia o add via validation:fail.
+function sendResult(cartPartial: Record<string, unknown>) {
+  try { nube.send("cart:before_update:result", (() => ({ cart: cartPartial })) as any); } catch (_e) { /* noop */ }
 }
 function gate(st: NubeSDKState) {
-  const payload = (st && (st as any).eventPayload) as BUPayload | null;
-  const requestId = payload && payload.request_id;
-  if (!requestId) return;
+  const cart: any = st && (st as any).cart;
+  const items: any[] = cart && Array.isArray(cart.items) ? cart.items : [];
 
-  if (selfAdd) { respond(requestId, true); return; }
-  if (!payload || payload.action !== "ADD" || !config || !config.enabled) { respond(requestId, true); return; }
-  const pid = payload.item && payload.item.product_id;
-  if (pid != null && String(pid) !== productId) { respond(requestId, true); return; }
+  if (!config || !config.enabled || !productId) { sendResult({ validation: { status: "success" } }); return; }
 
-  // produto personalizável → SEMPRE cancela o add nativo
-  respond(requestId, false);
+  const hasOurs = items.some((it) => String(it.product_id) === productId);
+  if (!hasOurs) { sendResult({ validation: { status: "success" } }); return; }
 
   if (!complete()) {
-    addedMsg = ""; msg = "⚠ Preencha a personalização acima para adicionar ao carrinho."; tone = "err"; renderBlock();
+    addedMsg = ""; msg = "⚠ Preencha a personalização para adicionar ao carrinho."; tone = "err"; renderBlock();
+    sendResult({ validation: { status: "fail", reason: "Preencha a personalização do produto." } });
     return;
   }
 
-  // quantidade = delta do seletor nativo (os absolutos do payload são instáveis)
-  const prev = (payload.item && payload.item.previous_quantity) || 0;
-  const next = (payload.item && payload.item.new_quantity) || prev + 1;
-  const q = Math.max(1, next - prev);
-  const v = payload.item?.variant_id ?? variantId ?? undefined;
   const props = buildProps();
-
-  setTimeout(() => {
-    selfAdd = true;
-    const item: any = { product_id: Number(productId), quantity: q, properties: props };
-    if (v) item.variant_id = v;
-    nube.send("cart:add", (() => ({ cart: { items: [item] } })) as any);
-    setTimeout(() => { selfAdd = false; }, 1200);
-  }, 0);
-
-  addedMsg = "✓ Adicionado ao carrinho"; msg = ""; renderBlock(); // feedback otimista
+  let touched = false;
+  const nextItems = items.map((it) => {
+    if (String(it.product_id) !== productId) return it;
+    touched = true;
+    const prev = (it.properties && typeof it.properties === "object" && !Array.isArray(it.properties)) ? it.properties : {};
+    return { ...it, properties: { ...prev, ...props } };
+  });
+  sendResult(touched ? { items: nextItems, validation: { status: "success" } } : { validation: { status: "success" } });
+  addedMsg = "✓ Adicionado ao carrinho"; msg = ""; renderBlock();
 }
 
 // ─── carrinho: mostra a personalização em cada item (before_line_item) ────────────
