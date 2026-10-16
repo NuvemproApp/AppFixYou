@@ -48,10 +48,26 @@ async function fetchStoreInfo(storeNuvemshopId, accessToken) {
   return response.data;
 }
 
+/**
+ * Extrai idioma/país/moeda do store info da Nuvemshop (normalizado p/ o Store).
+ * - language: idioma do painel/loja ("pt" | "es" | ...). O frontend resolve p/ pt-BR|es.
+ * - country: ISO do país ("BR" | "AR" | "MX" | ...).
+ * - currency: moeda principal da loja ("BRL" | "ARS" | "MXN" | ...).
+ */
+function extractStoreMeta(storeInfo) {
+  if (!storeInfo || typeof storeInfo !== 'object') return {};
+  return {
+    language: storeInfo.admin_language || storeInfo.main_language || null,
+    country: storeInfo.country || null,
+    currency: storeInfo.main_currency || null,
+  };
+}
+
 module.exports = {
   exchangeCodeForToken,
   createNuvemshopClient,
   fetchStoreInfo,
+  extractStoreMeta,
   NUVEMSHOP_AUTH_URL,
   NUVEMSHOP_API_BASE,
 };

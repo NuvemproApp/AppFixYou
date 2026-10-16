@@ -9,6 +9,11 @@
       "reload": "Recargar"
     }
   },
+  "install": {
+    "success": "¡Instalación completada con éxito!",
+    "redirecting": "Redirigiendo al panel de Nuvemshop en",
+    "clickHere": "Haz clic aquí si no eres redirigido automáticamente"
+  },
   "nav": {
     "dashboard": "FixYou",
     "settings": "Configuraci\u00f3n",
@@ -22,11 +27,11 @@
     "sections": {
       "s1": {
         "title": "1. Aceptaci\u00f3n de los T\u00e9rminos",
-        "body": "Al utilizar esta aplicaci\u00f3n, acept\u00e1s todos los t\u00e9rminos y condiciones aqu\u00ed descritos. Si no est\u00e1s de acuerdo con alguna parte de estos t\u00e9rminos, no deber\u00edas utilizar el servicio."
+        "body": "Al utilizar esta aplicaci\u00f3n, aceptas todos los t\u00e9rminos y condiciones aqu\u00ed descritos. Si no est\u00e1s de acuerdo con alguna parte de estos t\u00e9rminos, no deber\u00e1s utilizar el servicio."
       },
       "s2": {
         "title": "2. Descripci\u00f3n del Servicio",
-        "body": "La aplicaci\u00f3n proporciona herramientas y funcionalidades integradas a la plataforma Tiendanube para ayudarte en la gesti\u00f3n de tu tienda online. Los recursos disponibles pueden variar seg\u00fan el plan contratado."
+        "body": "La aplicaci\u00f3n proporciona herramientas y funcionalidades integradas a la plataforma Tiendanube para ayudarte en la gesti\u00f3n de tu tienda en l\u00ednea. Los recursos disponibles pueden variar seg\u00fan el plan contratado."
       },
       "s3": {
         "title": "3. Privacidad y Datos",
@@ -34,24 +39,24 @@
       },
       "s4": {
         "title": "4. Uso Aceptable",
-        "body": "Te compromet\u00e9s a utilizar la aplicaci\u00f3n de forma \u00e9tica y legal. Est\u00e1 prohibido usar el servicio para actividades il\u00edcitas, spam o cualquier forma de abuso."
+        "body": "Te comprometes a utilizar la aplicaci\u00f3n de forma \u00e9tica y legal. Est\u00e1 prohibido usar el servicio para actividades il\u00edcitas, spam o cualquier forma de abuso."
       },
       "s5": {
         "title": "5. Pagos y Cancelaci\u00f3n",
-        "body": "Los planes pagos se cobran seg\u00fan el ciclo elegido. Pod\u00e9s cancelar en cualquier momento. Despu\u00e9s de la cancelaci\u00f3n, el acceso contin\u00faa hasta el final del per\u00edodo pago."
+        "body": "Los planes de pago se cobran seg\u00fan el ciclo elegido. Puedes cancelar en cualquier momento. Despu\u00e9s de la cancelaci\u00f3n, el acceso contin\u00faa hasta el final del per\u00edodo pagado."
       },
       "s6": {
         "title": "6. Limitaci\u00f3n de Responsabilidad",
         "body": "La aplicaci\u00f3n se proporciona \"tal cual\". No nos responsabilizamos por p\u00e9rdidas o da\u00f1os derivados del uso o imposibilidad de uso del servicio. Haremos lo posible para mantener la disponibilidad y seguridad."
       }
     },
-    "scrollHint": "Desplaz\u00e1 hasta el final para aceptar los t\u00e9rminos",
+    "scrollHint": "Despl\u00e1zate hasta el final para aceptar los t\u00e9rminos",
     "accept": "Le\u00ed y acepto los T\u00e9rminos de Uso",
-    "error": "Error al aceptar los t\u00e9rminos. Intent\u00e1 de nuevo."
+    "error": "Error al aceptar los t\u00e9rminos. Int\u00e9ntalo de nuevo."
   },
   "billing": {
     "title": "Planes y Facturaci\u00f3n",
-    "locked": "Eleg\u00ed un plan para habilitar el acceso a la aplicaci\u00f3n. Si ya suscribiste, hac\u00e9 clic en verificar.",
+    "locked": "Elige un plan para habilitar el acceso a la aplicaci\u00f3n. Si ya te suscribiste, haz clic en verificar.",
     "lockedVerify": "Ya me suscrib\u00ed \u2014 verificar acceso",
     "verifying": "Verificando...",
     "status": {
@@ -65,7 +70,7 @@
     },
     "trialActiveTitle": "Est\u00e1s en el per\u00edodo de prueba",
     "trialActiveNotice": "Sin cobros hasta el {{date}}. Despu\u00e9s de esa fecha, la suscripci\u00f3n se renovar\u00e1 autom\u00e1ticamente.",
-    "trialActiveCancelHint": "Si no quer\u00e9s ser cobrado, cancel\u00e1 antes del {{date}}.",
+    "trialActiveCancelHint": "Si no quieres ser cobrado, cancela antes del {{date}}.",
     "interval": {
       "monthly": "Mensual",
       "semestral": "Semestral",
@@ -99,9 +104,9 @@
       },
       "growth": {
         "name": "Growth",
-        "priceMonthly": "$ 49,90/mes",
-        "priceSemiannual": "$ 39,90/mes",
-        "priceAnnual": "$ 29,90/mes",
+        "priceMonthly": "$ 49.90/mes",
+        "priceSemiannual": "$ 39.90/mes",
+        "priceAnnual": "$ 29.90/mes",
         "features": [
           "Todo de Starter",
           "Productos ilimitados",
@@ -111,9 +116,9 @@
       },
       "scale": {
         "name": "Scale",
-        "priceMonthly": "$ 99,90/mes",
-        "priceSemiannual": "$ 79,90/mes",
-        "priceAnnual": "$ 59,90/mes",
+        "priceMonthly": "$ 99.90/mes",
+        "priceSemiannual": "$ 79.90/mes",
+        "priceAnnual": "$ 59.90/mes",
         "features": [
           "Todo de Growth",
           "API personalizada",
@@ -124,7 +129,7 @@
       }
     },
     "checkout": "Suscribirse",
-    "portal": "Gestionar suscripci\u00f3n",
+    "portal": "Administrar suscripci\u00f3n",
     "cancel": "Cancelar plan",
     "invoices": {
       "title": "Facturas",
@@ -139,7 +144,7 @@
     },
     "partner": {
       "title": "Código del Socio",
-      "description": "Si fuiste referido por un socio, ingresá el código abajo para asociarlo a tu cuenta.",
+      "description": "Si fuiste referido por un socio, ingresa el código abajo para asociarlo a tu cuenta.",
       "label": "Código del Socio",
       "placeholder": "Ej: E5DCHV87",
       "save": "Asociar Socio",
@@ -147,7 +152,7 @@
       "associated": "Socio asociado: {{name}} ({{id}})",
       "change": "Cambiar",
       "success": "¡Socio asociado con éxito!",
-      "notFound": "Socio no encontrado. Verificá el código e intentá de nuevo.",
+      "notFound": "Socio no encontrado. Verifica el código e intenta de nuevo.",
       "suspended": "Este socio está suspendido y no puede recibir indicaciones.",
       "notConfigured": "Integración de socios no configurada."
     }
@@ -158,16 +163,18 @@
     "whatsappNumber": "",
     "videoTitle": "Tutorial en video",
     "viewVideo": "Ver video",
+    "videoPlaceholder": "Ningún video configurado",
+    "faqTitle": "Preguntas frecuentes",
     "tickets": {
-      "title": "Hablá con nosotros",
+      "title": "Habla con nosotros",
       "subjectPlaceholder": "Asunto (opcional)",
-      "messagePlaceholder": "Escribí tu duda o sugerencia...",
+      "messagePlaceholder": "Escribe tu duda o sugerencia...",
       "send": "Enviar",
       "sending": "Enviando...",
       "mine": "Mis conversaciones",
       "replyPlaceholder": "Responder...",
       "reply": "Enviar",
-      "you": "Vos",
+      "you": "Tú",
       "us": "Soporte",
       "status": { "open": "Abierto", "answered": "Respondido", "closed": "Cerrado" },
       "emailNotify": "Recibir correos cuando respondamos"
@@ -175,15 +182,15 @@
     "faq": [
       {
         "question": "\u00bfC\u00f3mo cambio mi plan?",
-        "answer": "And\u00e1 a la p\u00e1gina de Planes y eleg\u00ed el plan deseado. El cambio se aplica de inmediato."
+        "answer": "Ve a la p\u00e1gina de Planes y elige el plan deseado. El cambio se aplica de inmediato."
       },
       {
         "question": "\u00bfPuedo cancelar en cualquier momento?",
-        "answer": "S\u00ed, pod\u00e9s cancelar cuando quieras. El acceso contin\u00faa hasta el final del per\u00edodo ya pagado."
+        "answer": "S\u00ed, puedes cancelar cuando quieras. El acceso contin\u00faa hasta el final del per\u00edodo ya pagado."
       },
       {
         "question": "\u00bfC\u00f3mo contacto al soporte?",
-        "answer": "Pod\u00e9s contactarnos por WhatsApp o abrir un ticket por el e-mail de soporte."
+        "answer": "Puedes contactarnos por WhatsApp o abrir un ticket por el e-mail de soporte."
       },
       {
         "question": "\u00bfMis datos est\u00e1n seguros?",
@@ -195,12 +202,12 @@
     "title": "FixYou",
     "products": {
       "title": "Productos",
-      "description": "Gestion\u00e1 tus productos de tu cuenta Nuvemshop editando sus personalizaciones correspondientes.",
+      "description": "Gestiona tus productos de tu cuenta Nuvemshop editando sus personalizaciones correspondientes.",
       "action": "Ver todos"
     },
     "personalizations": {
       "title": "Personalizaciones",
-      "description": "Aqu\u00ed pod\u00e9s gestionar colores, fuentes e im\u00e1genes de tus productos personalizados.",
+      "description": "Aqu\u00ed puedes gestionar colores, fuentes e im\u00e1genes de tus productos personalizados.",
       "action": "Ver todas"
     }
   },
@@ -294,9 +301,9 @@
     "errorSave": "Error al guardar.",
     "errorDelete": "Error al eliminar.",
     "errorReorder": "Error al reordenar. Se recargó la lista.",
-    "dragToReorder": "Arrastrá para reordenar",
+    "dragToReorder": "Arrastra para reordenar",
     "imagemTooLarge": "La imagen debe tener como máximo 5MB.",
-    "confirmDelete": "\u00bfEst\u00e1s seguro de que quer\u00e9s eliminar \"{{titulo}}\"? Esta acci\u00f3n no se puede deshacer.",
+    "confirmDelete": "\u00bfEst\u00e1s seguro de que quieres eliminar \"{{titulo}}\"? Esta acci\u00f3n no se puede deshacer.",
     "modalCreateTitle": "Registrar {{categoria}}",
     "modalEditTitle": "Actualizar {{categoria}}",
     "fieldTitulo": "T\u00edtulo",
@@ -304,14 +311,14 @@
     "fieldCores": "Colores",
     "fieldSituacao": "Situaci\u00f3n",
     "fieldPosicao": "Posici\u00f3n",
-    "requiredTitulo": "Ingres\u00e1 un t\u00edtulo.",
-    "invalidCor": "Eleg\u00ed colores v\u00e1lidos antes de guardar.",
+    "requiredTitulo": "Ingresa un t\u00edtulo.",
+    "invalidCor": "Elige colores v\u00e1lidos antes de guardar.",
     "fieldImagem": "Imagen",
     "chooseFile": "Elegir archivo",
     "noFileChosen": "Ning\u00fan archivo seleccionado",
-    "requiredImagem": "Seleccion\u00e1 una imagen.",
+    "requiredImagem": "Selecciona una imagen.",
     "fieldFonte": "Fuente",
-    "requiredFonte": "Seleccion\u00e1 una fuente.",
+    "requiredFonte": "Selecciona una fuente.",
     "selectFontPlaceholder": "Seleccionar fuente",
     "searchFontPlaceholder": "Buscar fuente...",
     "noFontsFound": "No se encontraron fuentes."
@@ -328,7 +335,7 @@
     "bannerFree": "Estás en el período de prueba gratuito. Quedan {{days}} días.",
     "bannerFreeOne": "Tu período de prueba gratuito termina mañana.",
     "bannerAction": "Ver planes",
-    "paidBadge": "Suscribite y obtené {{days}} días gratis",
+    "paidBadge": "Suscríbete y obtén {{days}} días gratis",
     "freeBadge": "{{days}} días gratis para probar"
   },
   "common": {

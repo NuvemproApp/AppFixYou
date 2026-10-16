@@ -2,7 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const prisma = require('../lib/prisma');
 const { AppError } = require('../lib/errors');
-const { exchangeCodeForToken, fetchStoreInfo } = require('../config/nuvemshop');
+const { exchangeCodeForToken, fetchStoreInfo, extractStoreMeta } = require('../config/nuvemshop');
 const { requireAuth } = require('../middleware/auth');
 const { authLimiter } = require('../middleware/rateLimiter');
 const { validatePartner, registerPartnerLead, normalizeCode } = require('../lib/partners');
@@ -44,6 +44,8 @@ router.get('/callback', authLimiter, async (req, res, next) => {
     const trialEndsAt = new Date();
     trialEndsAt.setDate(trialEndsAt.getDate() + trialDays);
 
+    const meta = extractStoreMeta(storeInfo); // { language, country, currency }
+
     const store = await prisma.store.upsert({
       where: { nuvemshopId: userId },
       update: {
@@ -52,6 +54,10 @@ router.get('/callback', authLimiter, async (req, res, next) => {
         domain: storeInfo.original_domain || storeInfo.domain || undefined,
         email: storeInfo.email || undefined,
         uninstalledAt: null, // reinstalação limpa o marcador de desinstalação
+        // idioma/país/moeda da loja (só sobrescreve se vieram do store info)
+        ...(meta.language ? { language: meta.language } : {}),
+        ...(meta.country ? { country: meta.country } : {}),
+        ...(meta.currency ? { currency: meta.currency } : {}),
       },
       create: {
         nuvemshopId: userId,
@@ -59,6 +65,9 @@ router.get('/callback', authLimiter, async (req, res, next) => {
         name: storeInfo.name?.pt || storeInfo.name?.es || storeInfo.name?.en || null,
         domain: storeInfo.original_domain || storeInfo.domain || null,
         email: storeInfo.email || null,
+        language: meta.language || null,
+        country: meta.country || null,
+        currency: meta.currency || null,
         plan: 'starter',
         trialEndsAt,
       },
@@ -132,7 +141,25 @@ router.get('/callback', authLimiter, async (req, res, next) => {
  * GET /auth/verify-token — Verify JWT and return store info
  */
 router.get('/verify-token', requireAuth, async (req, res) => {
-  const store = req.store;
+  let store = req.store;
+  // Backfill de idioma/país/moeda p/ lojas instaladas antes desses campos
+  // (1x por loja, best-effort — não derruba o load se a API falhar).
+  if (store.accessToken && (!store.currency || !store.language)) {
+    try {
+      const meta = extractStoreMeta(await fetchStoreInfo(store.nuvemshopId, store.accessToken));
+      if (meta.language || meta.country || meta.currency) {
+        const updated = await prisma.store.update({
+          where: { id: store.id },
+          data: {
+            ...(meta.language ? { language: meta.language } : {}),
+            ...(meta.country ? { country: meta.country } : {}),
+            ...(meta.currency ? { currency: meta.currency } : {}),
+          },
+        });
+        store = { ...store, language: updated.language, country: updated.country, currency: updated.currency };
+      }
+    } catch (_e) { /* best-effort */ }
+  }
   res.json({
     store: {
       id: store.id,
@@ -142,6 +169,9 @@ router.get('/verify-token', requireAuth, async (req, res) => {
       email: store.email,
       plan: store.plan,
       trialEndsAt: store.trialEndsAt,
+      language: store.language,
+      country: store.country,
+      currency: store.currency,
     },
     subscription: store.subscription
       ? {

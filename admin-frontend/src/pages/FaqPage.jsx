@@ -32,7 +32,7 @@ export default function FaqPage() {
   const [expandedId, setExpandedId] = useState(null);
 
   // Support config state
-  const [supportConfig, setSupportConfig] = useState({ support_video_url: '', support_whatsapp: '', support_notify_email: '' });
+  const [supportConfig, setSupportConfig] = useState({ support_video_url: '', support_video_url_es: '', support_whatsapp: '', support_notify_email: '' });
   const [savingConfig, setSavingConfig] = useState(false);
   const [configSaved, setConfigSaved] = useState(false);
 
@@ -52,6 +52,7 @@ export default function FaqPage() {
       configs.forEach((c) => { map[c.key] = c.value; });
       setSupportConfig({
         support_video_url: map.support_video_url || '',
+        support_video_url_es: map.support_video_url_es || '',
         support_whatsapp: map.support_whatsapp || '',
         support_notify_email: map.support_notify_email || '',
       });
@@ -66,6 +67,7 @@ export default function FaqPage() {
       await adminApi.put('/config', {
         updates: [
           { key: 'support_video_url', value: supportConfig.support_video_url, group: 'support' },
+          { key: 'support_video_url_es', value: supportConfig.support_video_url_es, group: 'support' },
           { key: 'support_whatsapp', value: supportConfig.support_whatsapp, group: 'support' },
           { key: 'support_notify_email', value: supportConfig.support_notify_email, group: 'support' },
         ],
@@ -152,7 +154,7 @@ export default function FaqPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Vídeo Principal de Apresentação
+              Vídeo Principal (Português)
             </label>
             <input
               type="url"
@@ -161,7 +163,20 @@ export default function FaqPage() {
               placeholder="https://youtube.com/watch?v=..."
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <p className="text-xs text-gray-400 mt-1">Exibido no sidebar de Suporte do app</p>
+            <p className="text-xs text-gray-400 mt-1">Sidebar de Suporte (lojas em português)</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Vídeo Principal (Español)
+            </label>
+            <input
+              type="url"
+              value={supportConfig.support_video_url_es}
+              onChange={(e) => setSupportConfig((p) => ({ ...p, support_video_url_es: e.target.value }))}
+              placeholder="https://youtube.com/watch?v=..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-xs text-gray-400 mt-1">Lojas em espanhol (com legenda/narração). Vazio = usa o de português.</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

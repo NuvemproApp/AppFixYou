@@ -3,8 +3,7 @@ import { es } from 'date-fns/locale/es';
 
 const localeMap = {
   'pt-BR': ptBR,
-  'es-AR': es,
-  'es-MX': es,
+  es: es,
 };
 
 export function getDateFnsLocale(lang) {

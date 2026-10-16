@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import nexo, { connect as nexoConnect, iAmReady, getSessionToken as nexoGetSessionToken } from '@tiendanube/nexo';
 import { useTranslation } from 'react-i18next';
 import api, { setSessionToken, setTokenRefresher, setOnUnauthorized } from '../services/api.js';
+import { resolveLang, langFromCountry } from '../i18n/index.js';
 import LoadingState from '../components/LoadingState.jsx';
 import { Box, Text, Alert } from '@nimbus-ds/components';
 
@@ -37,7 +38,7 @@ function isNuvemshopReferrer() {
 }
 
 export default function NexoProvider({ children }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [store, setStore] = useState(null);
   const [billingStatus, setBillingStatus] = useState(null);
   const [termsAccepted, setTermsAccepted] = useState(null);
@@ -158,6 +159,17 @@ export default function NexoProvider({ children }) {
       setError('unauthorized');
     });
   }, []);
+
+  // Abre o app no idioma da LOJA (es para lojas AR/MX/LATAM, pt-BR para Brasil),
+  // a menos que o usuário tenha trocado manualmente (flag app_lang_explicit).
+  useEffect(() => {
+    if (!store) return;
+    try {
+      if (localStorage.getItem('app_lang_explicit') === '1') return;
+      const target = resolveLang(store.language) || langFromCountry(store.country);
+      if (target && i18n.language !== target) i18n.changeLanguage(target);
+    } catch { /* noop */ }
+  }, [store, i18n]);
 
   if (error === 'direct_access') {
     return (

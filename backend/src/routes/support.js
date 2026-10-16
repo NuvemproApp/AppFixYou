@@ -72,7 +72,7 @@ router.get('/', async (req, res, next) => {
         select: faqSelect,
       }),
       prisma.adminConfig.findMany({
-        where: { key: { in: ['support_video_url', 'support_whatsapp'] } },
+        where: { key: { in: ['support_video_url', 'support_video_url_es', 'support_whatsapp'] } },
       }),
     ]);
 
@@ -88,9 +88,15 @@ router.get('/', async (req, res, next) => {
 
     const configMap = Object.fromEntries(configs.map((c) => [c.key, c.value]));
 
+    // Vídeo por idioma: em espanhol usa o vídeo ES (com legenda/narração), e cai
+    // pro vídeo padrão (PT) se o ES não estiver configurado.
+    const mainVideoUrl = (locale === 'es' && configMap.support_video_url_es)
+      ? configMap.support_video_url_es
+      : (configMap.support_video_url || '');
+
     res.json({
       faqs,
-      mainVideoUrl: configMap.support_video_url || '',
+      mainVideoUrl,
       whatsapp: configMap.support_whatsapp || '',
     });
   } catch (err) {

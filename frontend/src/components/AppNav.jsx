@@ -62,7 +62,7 @@ function VideoModal({ url, onClose }) {
           {youtubeId ? (
             <iframe
               src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0`}
-              title="Vídeo"
+              title={t('support.videoTitle')}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
               style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
@@ -264,7 +264,7 @@ export default function AppNav() {
               <Button
                 appearance="primary"
                 as="a"
-                href={`https://web.whatsapp.com/send?phone=${whatsapp}`}
+                href={`https://wa.me/${String(whatsapp).replace(/\D/g, '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >

@@ -16,6 +16,9 @@ model Store {
   domain            String?
   email             String?
   accessToken       String?
+  language          String?   // idioma da loja (Nuvemshop main_language/admin_language: "pt"|"es")
+  country           String?   // país da loja (ISO: "BR"|"AR"|"MX"...)
+  currency          String?   // moeda da loja (Nuvemshop main_currency: "BRL"|"ARS"|"MXN"...)
   plan              String    @default("starter")
   trialEndsAt       DateTime?
   uninstalledAt     DateTime? // setado pelo webhook app/uninstalled (null = app instalado)

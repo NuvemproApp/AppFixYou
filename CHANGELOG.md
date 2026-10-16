@@ -6,6 +6,23 @@ versionado em [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [1.16.0] - 2026-10-16
+
+### Adicionado
+
+- **Readiness LATAM / Tiendanube (i18n).** O app abre automaticamente no idioma da loja: lojas **AR/MX/LATAM → Espanhol**, lojas **BR → Português**, a menos que o usuário troque manualmente (flag `app_lang_explicit` no `localStorage`). A deteção usa o idioma da loja (`store.language`) e cai para o país (`langFromCountry`) quando o idioma não vem. (`NexoProvider.jsx`, `i18n/index.js`).
+- **Backend guarda locale/país/moeda da loja.** Migration `0011_add_store_locale_currency` adiciona `language`, `country`, `currency` ao `Store`. O OAuth callback e o `verify-token` preenchem/backfillam esses campos a partir do `GET /store` da Nuvemshop (`extractStoreMeta` em `config/nuvemshop.js`). *(A `currency` é gravada como metadado inerte — a cobrança segue 100% em BRL; multimoeda fica para depois.)*
+- **Vídeo tutorial por idioma.** Nova config `support_video_url_es` (admin → FAQ): em espanhol o app usa o vídeo ES (com legenda/narração) e cai para o de português se vazio. (`routes/support.js`, `FaqPage.jsx`).
+
+### Alterado
+
+- **Seletor de idioma com um único Espanhol.** As opções passaram a ser apenas **Português** e **Español** (sem split regional es-AR/es-MX). Os locales `es-AR.json` e `es-MX.json` foram consolidados em **`es.json`** (espanhol neutro). `resolveLang` normaliza qualquer código (`es-*` → `es`, `pt-*` → `pt-BR`). (`LanguageSwitcher.jsx`, `i18n/index.js`, `dateFnsLocale.js`).
+- **WhatsApp de suporte usa `wa.me`.** O link de suporte passou de `web.whatsapp.com/send?phone=` (que falha no celular) para `https://wa.me/<numero>`, que abre o app/WhatsApp Web corretamente em qualquer dispositivo. (`AppNav.jsx`).
+
+### Corrigido
+
+- **Textos que ficavam sempre em português.** Chaves de tradução ausentes (`install.*`, `support.videoPlaceholder`, `support.faqTitle`, `support.videoTitle`) foram adicionadas em `pt-BR` e `es`, eliminando strings hardcoded/fallback em PT quando o app estava em espanhol.
+
 ## [1.15.0] - 2026-10-05
 
 ### Alterado

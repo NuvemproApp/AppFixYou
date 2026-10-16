@@ -9,6 +9,11 @@
       "reload": "Recarregar"
     }
   },
+  "install": {
+    "success": "Instalação concluída com sucesso!",
+    "redirecting": "Redirecionando para o painel da Nuvemshop em",
+    "clickHere": "Clique aqui se não for redirecionado automaticamente"
+  },
   "nav": {
     "dashboard": "FixYou",
     "settings": "Configura\u00e7\u00f5es",
@@ -159,6 +164,8 @@
     "whatsappNumber": "",
     "videoTitle": "Tutorial em v\u00eddeo",
     "viewVideo": "Ver v\u00eddeo",
+    "videoPlaceholder": "Nenhum v\u00eddeo configurado",
+    "faqTitle": "D\u00favidas frequentes",
     "tickets": {
       "title": "Fale com a gente",
       "subjectPlaceholder": "Assunto (opcional)",
