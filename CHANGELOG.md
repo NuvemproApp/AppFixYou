@@ -6,6 +6,13 @@ versionado em [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [1.17.1] - 2026-10-28
+
+### Alterado
+
+- **Miniaturas ilustrando cada modelo.** O seletor de modelo (`ModeloField`) agora mostra uma mini-ilustração (`components/ModeloThumb.jsx`, SVG) do que o cliente vê na vitrine — texto/ícone sobre fundo ou pattern — ao lado do nome, da descrição e dos campos.
+- **Suporte (sidebar) migrado para o padrão Nimbus.** Os controles que eram HTML "cru" viraram componentes Nimbus: formulário de ticket (`Input` + `Textarea`), resposta (`Input`), preferência de e-mail (`Checkbox`), FAQ (`Accordion`), modal de vídeo (`Modal`), badge de tickets respondidos e status do ticket (`Tag`). Sem mais `<input>`/`<textarea>`/overlay com `style` inline nem acordeão feito à mão.
+
 ## [1.17.0] - 2026-10-28
 
 ### Alterado

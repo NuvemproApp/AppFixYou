@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Box, Text, Tag, Radio } from '@nimbus-ds/components';
 import { MODELOS } from '../lib/modelos.js';
+import ModeloThumb from './ModeloThumb.jsx';
 
 // Seletor de modelo em cards ilustrados (no lugar de um <select> seco): cada
 // opção mostra o nome, uma descrição do que faz na vitrine e os campos que o
@@ -40,6 +41,9 @@ export default function ModeloField({ value, onChange }) {
                 checked={selected}
                 onChange={() => onChange(idStr)}
               />
+            </Box>
+            <Box flexShrink="0" display="flex" alignItems="center">
+              <ModeloThumb modeloKey={m.key} />
             </Box>
             <Box display="flex" flexDirection="column" gap="1">
               <Text fontWeight="bold">{name}</Text>

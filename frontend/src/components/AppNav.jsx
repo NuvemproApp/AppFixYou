@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Box, Button, Text, Title, Sidebar } from '@nimbus-ds/components';
+import { Box, Button, Text, Title, Sidebar, Input, Textarea, Checkbox, Modal, Tag, Accordion } from '@nimbus-ds/components';
 import LanguageSwitcher from './LanguageSwitcher.jsx';
 import BrandSymbol from './BrandSymbol.jsx';
 import api from '../services/api.js';
@@ -20,64 +20,42 @@ function getYouTubeId(url) {
   return null;
 }
 
-function VideoModal({ url, onClose }) {
+// Aspect-ratio 16:9 via truque do padding-bottom (Box do Nimbus não suporta
+// aspectRatio; mesma decisão documentada no CLAUDE.md para vídeos).
+function VideoFrame({ url }) {
   const { t } = useTranslation();
   const youtubeId = getYouTubeId(url);
-
-  // Fecha com Escape
-  useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onClose]);
-
   return (
-    <div
-      style={{
-        position: 'fixed', inset: 0, zIndex: 9999,
-        backgroundColor: 'rgba(0,0,0,0.85)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}
-      onClick={onClose}
-    >
-      <div
-        style={{ position: 'relative', width: '90%', maxWidth: 720 }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Botão fechar */}
-        <button
-          onClick={onClose}
-          style={{
-            position: 'absolute', top: -36, right: 0,
-            background: 'none', border: 'none', color: '#fff',
-            fontSize: 28, lineHeight: 1, cursor: 'pointer',
-          }}
-          aria-label={t('common.close')}
-        >
-          ×
-        </button>
-
-        {/* Vídeo */}
-        <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, borderRadius: 8, overflow: 'hidden' }}>
-          {youtubeId ? (
-            <iframe
-              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0`}
-              title={t('support.videoTitle')}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
-            />
-          ) : (
-            <video
-              src={url}
-              autoPlay
-              controls
-              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: '#000' }}
-            />
-          )}
-        </div>
-      </div>
+    <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', height: 0, borderRadius: 8, overflow: 'hidden', background: '#000' }}>
+      {youtubeId ? (
+        <iframe
+          src={`https://www.youtube.com/embed/${youtubeId}?rel=0`}
+          title={t('support.videoTitle')}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none', display: 'block' }}
+        />
+      ) : (
+        <video
+          src={url}
+          autoPlay
+          controls
+          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: '#000' }}
+        />
+      )}
     </div>
+  );
+}
+
+function VideoModal({ url, onClose }) {
+  const { t } = useTranslation();
+  return (
+    <Modal open onDismiss={onClose}>
+      <Modal.Header title={t('support.videoTitle')} />
+      <Modal.Body padding="base">
+        <VideoFrame url={url} />
+      </Modal.Body>
+    </Modal>
   );
 }
 
@@ -86,7 +64,6 @@ export default function AppNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const [supportOpen, setSupportOpen] = useState(false);
-  const [expandedId, setExpandedId] = useState(null);
   const [supportData, setSupportData] = useState(null);
   const [videoModal, setVideoModal] = useState(null); // url string | null
   const [tickets, setTickets] = useState(null);        // null = não carregado
@@ -233,18 +210,12 @@ export default function AppNav() {
             appearance="neutral"
             onClick={() => { setSupportOpen(true); setAnsweredCount(0); }}
           >
-            <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              {t('nav.support')}
+            <Box display="inline-flex" alignItems="center" gap="2">
+              <Text>{t('nav.support')}</Text>
               {answeredCount > 0 && (
-                <span style={{
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  minWidth: 16, height: 16, borderRadius: 8, background: '#e53e3e',
-                  color: '#fff', fontSize: 10, fontWeight: 700, lineHeight: 1, padding: '0 4px',
-                }}>
-                  {answeredCount > 9 ? '9+' : answeredCount}
-                </span>
+                <Tag appearance="danger">{answeredCount > 9 ? '9+' : answeredCount}</Tag>
               )}
-            </span>
+            </Box>
           </Button>
           <LanguageSwitcher />
         </Box>
@@ -277,15 +248,7 @@ export default function AppNav() {
           <Box display="flex" flexDirection="column" gap="2">
             <Title as="h4">{t('support.videoTitle')}</Title>
             {youtubeId ? (
-              <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', height: 0, borderRadius: 8, overflow: 'hidden', background: '#000' }}>
-                <iframe
-                  src={`https://www.youtube.com/embed/${youtubeId}?rel=0`}
-                  title={t('support.videoTitle')}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none', display: 'block' }}
-                />
-              </div>
+              <VideoFrame url={mainVideoUrl} />
             ) : mainVideoUrl ? (
               <Button
                 appearance="neutral"
@@ -312,67 +275,29 @@ export default function AppNav() {
             )}
           </Box>
 
-          {/* FAQ accordion */}
+          {/* FAQ — Accordion Nimbus */}
           {faqs.length > 0 && (
             <Box display="flex" flexDirection="column" gap="2">
               <Title as="h4">{t('support.faqTitle', { defaultValue: 'Dúvidas frequentes' })}</Title>
-              <Box display="flex" flexDirection="column" gap="1">
-                {faqs.map((item) => {
-                  const isOpen = expandedId === item.id;
-                  return (
-                    <Box
-                      key={item.id}
-                      borderColor="neutral-surfaceHighlight"
-                      borderStyle="solid"
-                      borderWidth="1"
-                      borderRadius="2"
-                      backgroundColor="neutral-background"
-                    >
-                      <Box
-                        display="flex"
-                        justifyContent="space-between"
-                        alignItems="center"
-                        padding="3"
-                        style={{ cursor: 'pointer' }}
-                        role="button"
-                        tabIndex={0}
-                        aria-expanded={isOpen}
-                        onClick={() => setExpandedId(isOpen ? null : item.id)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            setExpandedId(isOpen ? null : item.id);
-                          }
-                        }}
-                      >
-                        <Text fontWeight="bold" fontSize="caption" color="primary-interactive">
-                          {item.question}
-                        </Text>
-                        <Text color="neutral-textLow" fontSize="caption" aria-hidden="true">
-                          {isOpen ? '∧' : '∨'}
-                        </Text>
+              <Accordion>
+                {faqs.map((item) => (
+                  <Accordion.Item key={item.id} index={String(item.id)}>
+                    <Accordion.Header title={item.question} />
+                    <Accordion.Body>
+                      <Box display="flex" flexDirection="column" gap="2">
+                        <Text fontSize="caption" color="neutral-textLow">{item.answer}</Text>
+                        {item.videoUrl && (
+                          <Box>
+                            <Button appearance="neutral" onClick={() => setVideoModal(item.videoUrl)}>
+                              {t('support.viewVideo')}
+                            </Button>
+                          </Box>
+                        )}
                       </Box>
-                      {isOpen && (
-                        <Box paddingX="3" paddingBottom="3">
-                          <Text fontSize="caption" color="neutral-textLow">
-                            {item.answer}
-                          </Text>
-                          {item.videoUrl && (
-                            <Box paddingTop="2">
-                              <Button
-                                appearance="neutral"
-                                onClick={() => setVideoModal(item.videoUrl)}
-                              >
-                                {t('support.viewVideo')}
-                              </Button>
-                            </Box>
-                          )}
-                        </Box>
-                      )}
-                    </Box>
-                  );
-                })}
-              </Box>
+                    </Accordion.Body>
+                  </Accordion.Item>
+                ))}
+              </Accordion>
             </Box>
           )}
 
@@ -382,20 +307,18 @@ export default function AppNav() {
 
             {/* Novo ticket */}
             <Box display="flex" flexDirection="column" gap="2">
-              <input
+              <Input
                 value={tSubject}
                 onChange={(e) => setTSubject(e.target.value)}
                 placeholder={t('support.tickets.subjectPlaceholder')}
                 maxLength={200}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e0e0e0', fontSize: 13, boxSizing: 'border-box' }}
               />
-              <textarea
+              <Textarea
+                lines={3}
                 value={tMessage}
                 onChange={(e) => setTMessage(e.target.value)}
                 placeholder={t('support.tickets.messagePlaceholder')}
-                rows={3}
                 maxLength={5000}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e0e0e0', fontSize: 13, resize: 'vertical', boxSizing: 'border-box' }}
               />
               <Button appearance="primary" disabled={tSending || !tMessage.trim()} onClick={submitTicket}>
                 {tSending ? t('support.tickets.sending') : t('support.tickets.send')}
@@ -420,7 +343,9 @@ export default function AppNav() {
                   >
                     <Box display="flex" justifyContent="space-between" alignItems="center" gap="2">
                       <Text fontWeight="bold" fontSize="caption">{tk.subject || '—'}</Text>
-                      <Text fontSize="caption" color="neutral-textLow">{t(`support.tickets.status.${tk.status}`)}</Text>
+                      <Tag appearance={tk.status === 'answered' ? 'success' : 'neutral'}>
+                        {t(`support.tickets.status.${tk.status}`)}
+                      </Tag>
                     </Box>
                     {(tk.messages || []).map((m) => (
                       <Box
@@ -436,14 +361,15 @@ export default function AppNav() {
                       </Box>
                     ))}
                     {tk.status !== 'closed' && (
-                      <Box display="flex" gap="1">
-                        <input
-                          value={reply[tk.id] || ''}
-                          onChange={(e) => setReply((r) => ({ ...r, [tk.id]: e.target.value }))}
-                          placeholder={t('support.tickets.replyPlaceholder')}
-                          maxLength={5000}
-                          style={{ flex: 1, padding: '6px 8px', borderRadius: 8, border: '1px solid #e0e0e0', fontSize: 12, boxSizing: 'border-box' }}
-                        />
+                      <Box display="flex" gap="1" alignItems="flex-start">
+                        <Box flexGrow="1">
+                          <Input
+                            value={reply[tk.id] || ''}
+                            onChange={(e) => setReply((r) => ({ ...r, [tk.id]: e.target.value }))}
+                            placeholder={t('support.tickets.replyPlaceholder')}
+                            maxLength={5000}
+                          />
+                        </Box>
                         <Button
                           appearance="neutral"
                           disabled={replyingId === tk.id || !(reply[tk.id] || '').trim()}
@@ -459,16 +385,15 @@ export default function AppNav() {
             )}
 
             {/* Preferência de e-mail */}
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginTop: 4 }}>
-              <input
-                type="checkbox"
+            <Box paddingTop="1">
+              <Checkbox
+                name="emailNotify"
+                label={t('support.tickets.emailNotify')}
                 checked={emailNotifications}
                 disabled={savingPref}
                 onChange={toggleEmailPref}
-                style={{ cursor: 'pointer' }}
               />
-              <Text fontSize="caption" color="neutral-textLow">{t('support.tickets.emailNotify')}</Text>
-            </label>
+            </Box>
           </Box>
 
           {/* Loading state */}
