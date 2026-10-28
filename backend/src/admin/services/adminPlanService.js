@@ -9,6 +9,26 @@ const intervalMap = {
 };
 
 /**
+ * Um produto do Stripe só pertence a ESTE app se a metadata disser isso.
+ *
+ * A conta Stripe é COMPARTILHADA entre os apps NuvemPro, e `admin_plan_id` é o
+ * autoincrement da tabela AdminPlan de CADA app — o id 4 existe em todos eles.
+ * Buscar só por `admin_plan_id` é ambíguo e já causou estrago real: o plano
+ * Profissional de um app passou a apontar para o preço de outro (R$ 79,90 ->
+ * R$ 299,00), e o `products.update` do fluxo de sync chegava a renomear e
+ * reescrever a metadata do produto alheio. No `archiveInStripe` o mesmo
+ * descuido arquiva o produto e TODOS os preços ativos de outro app.
+ *
+ * Toda busca por produto filtra o resultado por aqui antes de usá-lo.
+ */
+function pertenceAoApp(product, plan) {
+  const m = (product && product.metadata) || {};
+  const alvo = String((plan && plan.appId) || '');
+  if (!alvo) return false;
+  return m.app_id === alvo || m.app_slug === alvo;
+}
+
+/**
  * Localiza o produto Stripe do plano pela metadata admin_plan_id.
  * Fallback: busca por plan_key + app_id (para planos migrados ou re-criados no banco).
  * Se não encontrar, cria um novo produto.
@@ -27,6 +47,8 @@ async function findOrCreateStripeProduct(plan, appName, appSlug) {
   const byId = await stripe.products.search({
     query: `metadata['admin_plan_id']:'${plan.id}'`,
   });
+  // Só produtos deste app — ver pertenceAoApp().
+  byId.data = byId.data.filter((p) => pertenceAoApp(p, plan));
   if (byId.data.length > 0) {
     const product = byId.data[0];
     await stripe.products.update(product.id, { name: productName, metadata });
@@ -37,6 +59,8 @@ async function findOrCreateStripeProduct(plan, appName, appSlug) {
   const byKey = await stripe.products.search({
     query: `metadata['plan_key']:'${plan.name}' AND metadata['app_id']:'${plan.appId}'`,
   });
+  // Só produtos deste app — ver pertenceAoApp().
+  byKey.data = byKey.data.filter((p) => pertenceAoApp(p, plan));
   if (byKey.data.length > 0) {
     const product = byKey.data[0];
     await stripe.products.update(product.id, { name: productName, metadata });
@@ -145,6 +169,8 @@ const adminPlanService = {
       const byId = await stripe.products.search({
         query: `metadata['admin_plan_id']:'${plan.id}'`,
       });
+      // Só produtos deste app — ver pertenceAoApp().
+      byId.data = byId.data.filter((p) => pertenceAoApp(p, plan));
       if (byId.data.length > 0) {
         product = byId.data[0];
       } else {
@@ -152,6 +178,8 @@ const adminPlanService = {
         const byKey = await stripe.products.search({
           query: `metadata['plan_key']:'${plan.name}' AND metadata['app_id']:'${plan.appId}'`,
         });
+        // Só produtos deste app — ver pertenceAoApp().
+        byKey.data = byKey.data.filter((p) => pertenceAoApp(p, plan));
         if (byKey.data.length > 0) product = byKey.data[0];
       }
     } catch {
@@ -261,3 +289,5 @@ const adminPlanService = {
 };
 
 module.exports = adminPlanService;
+// Exposto para o adminPlans.js aplicar o MESMO escopo no /verify-stripe.
+module.exports.pertenceAoApp = pertenceAoApp;

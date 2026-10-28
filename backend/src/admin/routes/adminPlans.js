@@ -196,6 +196,8 @@ router.get('/verify-stripe', async (req, res, next) => {
         const byId = await stripe.products.search({
           query: `metadata['admin_plan_id']:'${plan.id}'`,
         });
+        // Só produtos deste app — ver pertenceAoApp() no adminPlanService.
+        byId.data = byId.data.filter((p) => adminPlanService.pertenceAoApp(p, plan));
         if (byId.data.length > 0) {
           product = byId.data[0];
         } else {
@@ -203,6 +205,8 @@ router.get('/verify-stripe', async (req, res, next) => {
           const byKey = await stripe.products.search({
             query: `metadata['plan_key']:'${plan.name}' AND metadata['app_id']:'${plan.appId}'`,
           });
+          // Só produtos deste app — ver pertenceAoApp() no adminPlanService.
+          byKey.data = byKey.data.filter((p) => adminPlanService.pertenceAoApp(p, plan));
           if (byKey.data.length > 0) product = byKey.data[0];
         }
       } catch {
