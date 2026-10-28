@@ -4,7 +4,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
   Text,
-  Title,
   Button,
   Card,
   Table,
@@ -13,10 +12,13 @@ import {
   Spinner,
   Alert,
 } from '@nimbus-ds/components';
+import { PlusCircleIcon } from '@nimbus-ds/icons';
 import api from '../services/api.js';
-import Breadcrumb from '../components/Breadcrumb.jsx';
+import PageHeader from '../components/PageHeader.jsx';
+import EmptyState from '../components/EmptyState.jsx';
 import PersonalizationValuePreview from '../components/PersonalizationValuePreview.jsx';
 import { modeloKey } from '../lib/modelos.js';
+import { categoriaSlug } from '../lib/categorias.js';
 import { registerFont } from '../lib/fontRegistry.js';
 
 // Tipo de valor de cada categoria — decide como renderizar o preview (mesmo
@@ -158,17 +160,19 @@ export default function ProductPersonalizationsPage() {
     <Card>
       <Card.Body>
         <Box display="flex" flexDirection="column" gap="4">
-          <Box display="flex" flexDirection="column" gap="1">
-            <Breadcrumb items={[
+          <PageHeader
+            breadcrumb={[
               { label: t('common.home'), onClick: () => navigate('/') },
               { label: t('products.title'), onClick: () => navigate('/produtos') },
               { label: t('products.actionPersonalize') },
-            ]} />
-            <Title as="h3">{t('products.actionPersonalize')}</Title>
-            <Text color="neutral-textLow">
-              {t('productPersonalizations.subtitle', { produto: productName, modelo: modeloLabel })}
-            </Text>
-          </Box>
+            ]}
+            title={t('products.actionPersonalize')}
+            description={t('productPersonalizations.subtitle', { produto: productName, modelo: modeloLabel })}
+          />
+
+          <Alert appearance="primary" title={t('productPersonalizations.helpTitle')}>
+            <Text>{t('productPersonalizations.helpBody', { modelo: modeloLabel })}</Text>
+          </Alert>
 
           {saveSuccess && (
             <Alert appearance="success">
@@ -189,17 +193,15 @@ export default function ProductPersonalizationsPage() {
                 <Tabs.Item key={categoria} label={t(`personalizacoes.categorias.${categoria}.title`)}>
                   <Box display="flex" flexDirection="column" gap="4" paddingTop="4">
                     {categoriaItems.length === 0 ? (
-                      <Box
-                        padding="8"
-                        display="flex"
-                        justifyContent="center"
-                        borderColor="neutral-surfaceHighlight"
-                        borderStyle="dashed"
-                        borderWidth="1"
-                        borderRadius="2"
-                      >
-                        <Text color="neutral-textLow">{t('personalizationItems.empty')}</Text>
-                      </Box>
+                      <EmptyState
+                        icon={<PlusCircleIcon />}
+                        title={t('productPersonalizations.emptyTabTitle', {
+                          categoria: t(`personalizacoes.categorias.${categoria}.title`),
+                        })}
+                        description={t('productPersonalizations.emptyTabDesc')}
+                        actionLabel={t('productPersonalizations.emptyTabAction')}
+                        onAction={() => navigate(`/personalizacoes/${categoriaSlug(categoria)}`)}
+                      />
                     ) : (
                       <Box overflowX="auto">
                         <Table>

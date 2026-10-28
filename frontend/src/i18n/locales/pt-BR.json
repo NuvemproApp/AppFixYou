@@ -201,48 +201,87 @@
   },
   "dashboard": {
     "title": "FixYou",
+    "welcomeTitle": "Bem-vindo ao FixYou",
+    "welcomeSubtitle": "Deixe seus clientes personalizarem os produtos da sua loja. Siga os 4 passos abaixo para começar.",
+    "howItWorks": "Como funciona",
+    "steps": {
+      "s1": {
+        "title": "1. Cadastre os itens de personalização",
+        "description": "Crie as fontes, cores, ícones e imagens de fundo que o cliente poderá escolher. É o seu catálogo de opções.",
+        "action": "Abrir Personalizações"
+      },
+      "s2": {
+        "title": "2. Escolha o modelo de cada produto",
+        "description": "No produto, defina um modelo. Ele decide quais campos (fonte, cor, ícone, fundo...) aparecem para o cliente.",
+        "action": "Abrir Produtos"
+      },
+      "s3": {
+        "title": "3. Selecione os itens do produto",
+        "description": "Marque quais fontes, cores, ícones e fundos ficam disponíveis naquele produto específico."
+      },
+      "s4": {
+        "title": "4. Veja na sua loja",
+        "description": "Abra a página do produto na sua loja e confira a personalização funcionando, com preview ao vivo, para o cliente."
+      }
+    },
     "products": {
       "title": "Produtos",
-      "description": "Gerencie seus produtos de sua conta Nuvemshop editando suas personalizações correspondentes.",
-      "action": "Ver todos"
+      "description": "Defina o modelo e selecione os itens de personalização de cada produto.",
+      "action": "Ver produtos"
     },
     "personalizations": {
       "title": "Personalizações",
-      "description": "Aqui você pode gerenciar cores, fontes e imagens de seus produtos customizados.",
-      "action": "Ver todas"
+      "description": "Gerencie o catálogo de fontes, cores, ícones, fundos e patterns.",
+      "action": "Ver personalizações"
     }
   },
   "products": {
     "title": "Produtos",
+    "intro": "Estes são os produtos da sua loja Nuvemshop. Defina um modelo de personalização nos produtos que você quer deixar personalizáveis.",
     "searchPlaceholder": "Pesquisar produto",
     "colCode": "Código",
     "colProduct": "Produto",
     "colModel": "Modelo",
+    "modelNone": "Não configurado",
     "actionSetModel": "Definir modelo",
-    "actionPersonalize": "Personalizar",
-    "modalTitle": "Definir modelo",
+    "actionChangeModel": "Alterar modelo",
+    "actionPersonalize": "Selecionar itens",
+    "modalTitle": "Definir modelo de personalização",
+    "modalHelp": "Escolha como o cliente vai personalizar este produto. Cada modelo mostra campos diferentes na página do produto.",
     "fieldModel": "Modelo:",
     "modelos": {
-      "none": "Nenhum modelo",
+      "none": "Sem personalização",
       "mesclado": "Modelo Mesclado",
       "textoSomente": "Modelo Texto Somente",
       "centralizado": "Modelo Centralizado",
       "textoDuplicado": "Modelo Texto Duplicado"
     },
+    "modelosDesc": {
+      "none": "O produto não terá personalização na loja.",
+      "mesclado": "Nome com fonte e cor, mais um ícone, sobre uma imagem de fundo.",
+      "textoSomente": "Só o nome sobre uma imagem de fundo, usando um conjunto de cores pronto.",
+      "centralizado": "Nome centralizado com fonte e cor, sobre um pattern (textura).",
+      "textoDuplicado": "Nome repetido com fonte e cor, sobre um pattern (textura)."
+    },
     "empty": "Nenhum produto encontrado.",
+    "emptyTitle": "Nenhum produto por aqui",
+    "emptyDesc": "Cadastre produtos na sua loja Nuvemshop e eles aparecerão aqui para você personalizar.",
     "searchEmpty": "Nenhum produto encontrado para essa busca.",
+    "searchEmptyTitle": "Nada encontrado",
     "errorLoad": "Erro ao carregar produtos.",
     "errorSaveModelo": "Erro ao salvar o modelo."
   },
   "personalizacoes": {
     "title": "Personalizações",
+    "intro": "Este é o seu catálogo de opções. Cadastre aqui os itens que o cliente poderá escolher; depois você os disponibiliza em cada produto.",
     "categorias": {
-      "fontes": { "title": "Fontes", "titleSingular": "fonte", "action": "Ver todas" },
-      "coresDeFonte": { "title": "Cores de fonte", "titleSingular": "cor de fonte", "action": "Ver todas" },
+      "fontes": { "title": "Fontes", "titleSingular": "fonte", "action": "Gerenciar", "description": "As famílias de fonte que o cliente pode escolher para o texto." },
+      "coresDeFonte": { "title": "Cores de fonte", "titleSingular": "cor de fonte", "action": "Gerenciar", "description": "As cores disponíveis para o texto (uma cor cada)." },
       "icones": {
         "title": "Ícones",
         "titleSingular": "ícone",
-        "action": "Ver todos",
+        "action": "Gerenciar",
+        "description": "Ícones (PNG transparente) que o cliente adiciona à arte.",
         "uploadHint": {
           "title": "ATENÇÃO! Orientações para o upload do ícone:",
           "format": "Formato: .png - fundo transparente",
@@ -253,7 +292,8 @@
       "imagensDeFundo": {
         "title": "Imagens de fundo",
         "titleSingular": "imagem de fundo",
-        "action": "Ver todas",
+        "action": "Gerenciar",
+        "description": "Imagens de fundo sobre as quais o texto é aplicado.",
         "uploadHint": {
           "title": "ATENÇÃO! Orientações para o upload da imagem de fundo:",
           "format": "Formato: .png, .jpg ou .jpeg",
@@ -261,11 +301,12 @@
           "density": "Densidade: 150 dpi"
         }
       },
-      "conjuntosDeCores": { "title": "Conjuntos de cores", "titleSingular": "conjunto de cores", "action": "Ver todos" },
+      "conjuntosDeCores": { "title": "Conjuntos de cores", "titleSingular": "conjunto de cores", "action": "Gerenciar", "description": "Paletas prontas de 4 cores, usadas pelo modelo Texto Somente." },
       "patterns": {
         "title": "Patterns",
         "titleSingular": "pattern",
-        "action": "Ver todos",
+        "action": "Gerenciar",
+        "description": "Texturas de fundo que se repetem, usadas pelos modelos Centralizado e Texto Duplicado.",
         "uploadHint": {
           "title": "ATENÇÃO! Orientações para o upload do pattern:",
           "format": "Formato: .png, .jpg ou .jpeg",
@@ -276,10 +317,15 @@
     }
   },
   "productPersonalizations": {
-    "subtitle": "Personalizações para o produto: {{produto}} ({{modelo}})",
+    "subtitle": "Produto: {{produto}} — {{modelo}}",
+    "helpTitle": "Como preencher",
+    "helpBody": "Este produto usa o {{modelo}}. Em cada aba abaixo, marque os itens que o cliente poderá escolher. Deixe pelo menos um item marcado em cada aba para a personalização aparecer na loja.",
     "selectAllButton": "Selecionar todos os itens dessa aba",
     "saveButton": "Salvar personalizações do produto",
     "saveSuccess": "Personalizações do produto salvas com sucesso!",
+    "emptyTabTitle": "Nenhum item de {{categoria}} cadastrado",
+    "emptyTabDesc": "Você precisa cadastrar itens dessa categoria antes de disponibilizá-los neste produto.",
+    "emptyTabAction": "Cadastrar itens",
     "errorLoad": "Erro ao carregar as personalizações do produto.",
     "errorSave": "Erro ao salvar as personalizações do produto."
   },
@@ -297,7 +343,10 @@
     "cadastrar": "Cadastrar",
     "atualizar": "Atualizar",
     "empty": "Nenhum item encontrado.",
+    "emptyTitle": "Nenhum item em {{categoria}}",
+    "emptyDesc": "Cadastre o primeiro item de {{categoria}} para disponibilizá-lo nos seus produtos.",
     "searchEmpty": "Nenhum item encontrado para essa busca.",
+    "searchEmptyTitle": "Nada encontrado",
     "errorLoad": "Erro ao carregar os itens.",
     "errorSave": "Erro ao salvar.",
     "errorDelete": "Erro ao excluir.",
@@ -305,6 +354,7 @@
     "dragToReorder": "Arraste para reordenar",
     "imagemTooLarge": "A imagem deve ter no máximo 5MB.",
     "confirmDelete": "Tem certeza que deseja excluir \"{{titulo}}\"? Essa ação não pode ser desfeita.",
+    "deleteModalTitle": "Excluir item",
     "modalCreateTitle": "Cadastrar {{categoria}}",
     "modalEditTitle": "Atualizar {{categoria}}",
     "fieldTitulo": "Título",

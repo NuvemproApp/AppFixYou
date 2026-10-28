@@ -6,6 +6,19 @@ versionado em [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [1.17.0] - 2026-10-28
+
+### Alterado
+
+- **Redesenho de UX do app do lojista (FixYou) seguindo o padrão Nuvemshop/Nimbus.** O app era funcional mas "travado e sem instrução"; agora guia o lojista pelo fluxo.
+  - **Dashboard = onboarding:** cabeçalho de boas-vindas + passo-a-passo "Como funciona" em 4 passos numerados com CTA (① cadastrar itens → ② definir o modelo do produto → ③ selecionar itens → ④ ver na loja), além dos atalhos rápidos. Novo `components/StepsGuide.jsx`.
+  - **Modelos explicados:** o `<select>` seco do modal "Definir modelo" virou **cards ilustrados** (novo `components/ModeloField.jsx`) — cada modelo mostra nome, descrição do que faz na vitrine e os campos que o cliente verá (chips). Novo `products.modelosDesc.*` no i18n; `lib/modelos.js` ganhou as `categorias` por modelo.
+  - **Estados vazios instrutivos:** o `EmptyState.jsx` (que existia e nunca era usado) passou a ser adotado em Produtos, catálogo de itens e abas por produto — com ícone, título, descrição e **CTA** (ex.: aba vazia leva a cadastrar a categoria). Suporta ícone Nimbus.
+  - **Categorias com identidade:** os 6 cards de Personalizações ganharam ícone próprio (antes todos `EditIcon`) e descrição explicando cada um.
+  - **Fluxo guiado nos produtos:** coluna "Modelo" mostra tag de status (`Não configurado` × modelo ativo); ações claras ("Selecionar itens" / "Alterar modelo"); ao definir o modelo o app leva direto para selecionar os itens; a tela de seleção explica a relação modelo→campos.
+  - **Consistência e polimento:** novo `components/PageHeader.jsx` (breadcrumb + título + descrição + ação) padroniza os cabeçalhos; `window.confirm` de exclusão virou **Modal Nimbus**; textos de ajuda/intro em cada tela; hierarquia de títulos unificada.
+  - **i18n:** todas as strings novas em **pt-BR e es** (paridade 283/283).
+
 ## [1.16.0] - 2026-10-16
 
 ### Adicionado

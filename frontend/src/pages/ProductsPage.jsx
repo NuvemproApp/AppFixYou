@@ -4,21 +4,23 @@ import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Text,
-  Title,
   Button,
   Card,
   Modal,
   Table,
-  Select,
   Input,
   Spinner,
   Alert,
   Pagination,
+  Tag,
 } from '@nimbus-ds/components';
+import { BoxUnpackedIcon, SearchIcon } from '@nimbus-ds/icons';
 import api from '../services/api.js';
-import Breadcrumb from '../components/Breadcrumb.jsx';
+import PageHeader from '../components/PageHeader.jsx';
+import EmptyState from '../components/EmptyState.jsx';
 import ActionsMenu from '../components/ActionsMenu.jsx';
-import { MODELOS, modeloKey } from '../lib/modelos.js';
+import ModeloField from '../components/ModeloField.jsx';
+import { modeloKey } from '../lib/modelos.js';
 
 const PAGE_SIZE = 20;
 
@@ -93,8 +95,12 @@ export default function ProductsPage() {
       await api.put(`/api/products/${editing.id}/modelo`, {
         modelo: modeloForm ? Number(modeloForm) : null,
       });
+      const productId = editing.id;
+      const chosen = modeloForm ? Number(modeloForm) : null;
       closeModal();
       await loadProducts(page, search);
+      // Acabou de ativar a personalização? Leva direto para selecionar os itens.
+      if (chosen) navigate(`/produtos/${productId}/personalizar`);
     } catch {
       setSaveError(t('products.errorSaveModelo'));
     } finally {
@@ -108,25 +114,30 @@ export default function ProductsPage() {
   }
 
   function actionsFor(product) {
-    const items = [{ label: t('products.actionSetModel'), onClick: () => openDefinirModelo(product) }];
     if (product.modelo) {
-      items.push({
-        label: t('products.actionPersonalize'),
-        onClick: () => navigate(`/produtos/${product.id}/personalizar`),
-      });
+      return [
+        {
+          label: t('products.actionPersonalize'),
+          onClick: () => navigate(`/produtos/${product.id}/personalizar`),
+        },
+        { label: t('products.actionChangeModel'), onClick: () => openDefinirModelo(product) },
+      ];
     }
-    return items;
+    return [{ label: t('products.actionSetModel'), onClick: () => openDefinirModelo(product) }];
   }
 
   return (
     <Card>
       <Card.Body>
         <Box display="flex" flexDirection="column" gap="4">
-          <Breadcrumb items={[
-            { label: t('common.home'), onClick: () => navigate('/') },
-            { label: t('products.title') },
-          ]} />
-          <Title as="h3">{t('products.title')}</Title>
+          <PageHeader
+            breadcrumb={[
+              { label: t('common.home'), onClick: () => navigate('/') },
+              { label: t('products.title') },
+            ]}
+            title={t('products.title')}
+            description={t('products.intro')}
+          />
 
           <Box maxWidth="360px">
             <Input
@@ -147,19 +158,19 @@ export default function ProductsPage() {
               <Spinner size="large" />
             </Box>
           ) : products.length === 0 ? (
-            <Box
-              padding="8"
-              display="flex"
-              justifyContent="center"
-              borderColor="neutral-surfaceHighlight"
-              borderStyle="dashed"
-              borderWidth="1"
-              borderRadius="2"
-            >
-              <Text color="neutral-textLow">
-                {search ? t('products.searchEmpty') : t('products.empty')}
-              </Text>
-            </Box>
+            search ? (
+              <EmptyState
+                icon={<SearchIcon />}
+                title={t('products.searchEmptyTitle')}
+                description={t('products.searchEmpty')}
+              />
+            ) : (
+              <EmptyState
+                icon={<BoxUnpackedIcon />}
+                title={t('products.emptyTitle')}
+                description={t('products.emptyDesc')}
+              />
+            )
           ) : (
             <Box overflowX="auto">
               <Table>
@@ -168,7 +179,7 @@ export default function ProductsPage() {
                     <Table.Cell as="th">{t('products.colCode')}</Table.Cell>
                     <Table.Cell as="th">{t('products.colProduct')}</Table.Cell>
                     <Table.Cell as="th">{t('products.colModel')}</Table.Cell>
-                    <Table.Cell as="th">#</Table.Cell>
+                    <Table.Cell as="th">{t('common.actions')}</Table.Cell>
                   </Table.Row>
                 </Table.Head>
                 <Table.Body>
@@ -181,7 +192,11 @@ export default function ProductsPage() {
                         <Text>{p.name}</Text>
                       </Table.Cell>
                       <Table.Cell>
-                        <Text color="neutral-textLow">{modeloLabel(p.modelo)}</Text>
+                        {p.modelo ? (
+                          <Tag appearance="success">{modeloLabel(p.modelo)}</Tag>
+                        ) : (
+                          <Tag appearance="warning">{t('products.modelNone')}</Tag>
+                        )}
                       </Table.Cell>
                       <Table.Cell>
                         <ActionsMenu items={actionsFor(p)} />
@@ -205,29 +220,13 @@ export default function ProductsPage() {
         <Modal.Header title={t('products.modalTitle')} />
         <Modal.Body padding="base">
           <Box display="flex" flexDirection="column" gap="4">
+            <Text color="neutral-textLow">{t('products.modalHelp')}</Text>
             {saveError && (
               <Alert appearance="danger">
                 <Text>{saveError}</Text>
               </Alert>
             )}
-            <Box display="flex" flexDirection="column" gap="1">
-              <Text as="label" htmlFor="modelo" fontWeight="bold" fontSize="caption">
-                {t('products.fieldModel')}
-              </Text>
-              <Select
-                id="modelo"
-                name="modelo"
-                value={modeloForm}
-                onChange={(e) => setModeloForm(e.target.value)}
-              >
-                <option value="">{t('products.modelos.none')}</option>
-                {MODELOS.map((m) => (
-                  <option key={m.id} value={String(m.id)}>
-                    {t(`products.modelos.${m.key}`)}
-                  </option>
-                ))}
-              </Select>
-            </Box>
+            <ModeloField value={modeloForm} onChange={setModeloForm} />
           </Box>
         </Modal.Body>
         <Modal.Footer>

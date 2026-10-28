@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Text,
-  Title,
   Button,
   Card,
   Modal,
@@ -16,12 +15,13 @@ import {
   Tag,
   Radio,
 } from '@nimbus-ds/components';
-import { DragDotsIcon } from '@nimbus-ds/icons';
+import { DragDotsIcon, PlusCircleIcon, SearchIcon } from '@nimbus-ds/icons';
 import api from '../services/api.js';
 import ColorInput from '../components/ColorInput.jsx';
 import ImageUploadInput from '../components/ImageUploadInput.jsx';
 import FontPicker from '../components/FontPicker.jsx';
-import Breadcrumb from '../components/Breadcrumb.jsx';
+import PageHeader from '../components/PageHeader.jsx';
+import EmptyState from '../components/EmptyState.jsx';
 import ActionsMenu from '../components/ActionsMenu.jsx';
 import PersonalizationValuePreview from '../components/PersonalizationValuePreview.jsx';
 import { registerFont, cssFontFamily } from '../lib/fontRegistry.js';
@@ -84,6 +84,8 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [draggedId, setDraggedId] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Reordenar por arraste só faz sentido vendo a lista completa, em ordem
   // real (posicao asc) — desliga com busca ativa, mais de 1 página, ou
@@ -179,13 +181,18 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
     setSaveError('');
   }
 
-  async function handleDelete(item) {
-    if (!window.confirm(t('personalizationItems.confirmDelete', { titulo: item.titulo }))) return;
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await api.delete(`/api/personalizations/${item.id}`);
+      await api.delete(`/api/personalizations/${deleteTarget.id}`);
+      setDeleteTarget(null);
       await loadItems(page, search, sortBy, sortDir);
     } catch {
       setError(t('personalizationItems.errorDelete'));
+      setDeleteTarget(null);
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -283,19 +290,20 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
     <Card>
       <Card.Body>
         <Box display="flex" flexDirection="column" gap="4">
-          <Box display="flex" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" gap="2">
-            <Box display="flex" flexDirection="column" gap="1">
-              <Breadcrumb items={[
-                { label: t('common.home'), onClick: () => navigate('/') },
-                { label: t('personalizacoes.title'), onClick: () => navigate('/personalizacoes') },
-                { label: categoriaLabel },
-              ]} />
-              <Title as="h3">{categoriaLabel}</Title>
-            </Box>
-            <Button appearance="primary" onClick={openCreate}>
-              {t('personalizationItems.createButton', { categoria: categoriaSingular })}
-            </Button>
-          </Box>
+          <PageHeader
+            breadcrumb={[
+              { label: t('common.home'), onClick: () => navigate('/') },
+              { label: t('personalizacoes.title'), onClick: () => navigate('/personalizacoes') },
+              { label: categoriaLabel },
+            ]}
+            title={categoriaLabel}
+            description={t(`personalizacoes.categorias.${categoria}.description`)}
+            action={(
+              <Button appearance="primary" onClick={openCreate}>
+                {t('personalizationItems.createButton', { categoria: categoriaSingular })}
+              </Button>
+            )}
+          />
 
           <Box maxWidth="360px">
             <Input
@@ -316,19 +324,21 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
               <Spinner size="large" />
             </Box>
           ) : items.length === 0 ? (
-            <Box
-              padding="8"
-              display="flex"
-              justifyContent="center"
-              borderColor="neutral-surfaceHighlight"
-              borderStyle="dashed"
-              borderWidth="1"
-              borderRadius="2"
-            >
-              <Text color="neutral-textLow">
-                {search ? t('personalizationItems.searchEmpty') : t('personalizationItems.empty')}
-              </Text>
-            </Box>
+            search ? (
+              <EmptyState
+                icon={<SearchIcon />}
+                title={t('personalizationItems.searchEmptyTitle')}
+                description={t('personalizationItems.searchEmpty')}
+              />
+            ) : (
+              <EmptyState
+                icon={<PlusCircleIcon />}
+                title={t('personalizationItems.emptyTitle', { categoria: categoriaLabel })}
+                description={t('personalizationItems.emptyDesc', { categoria: categoriaSingular })}
+                actionLabel={t('personalizationItems.createButton', { categoria: categoriaSingular })}
+                onAction={openCreate}
+              />
+            )
           ) : (
             <Box overflowX="auto">
               <Table>
@@ -383,7 +393,7 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
                         <ActionsMenu
                           items={[
                             { label: t('personalizationItems.editar'), onClick: () => openEdit(item) },
-                            { label: t('personalizationItems.excluir'), onClick: () => handleDelete(item), danger: true },
+                            { label: t('personalizationItems.excluir'), onClick: () => setDeleteTarget(item), danger: true },
                           ]}
                         />
                       </Table.Cell>
@@ -535,6 +545,25 @@ export default function PersonalizationListPage({ categoria, valueType = 'color'
               ) : (
                 t('personalizationItems.atualizar')
               )}
+            </Button>
+          </Box>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal open={!!deleteTarget} onDismiss={() => setDeleteTarget(null)}>
+        <Modal.Header title={t('personalizationItems.deleteModalTitle')} />
+        <Modal.Body padding="base">
+          <Text>
+            {t('personalizationItems.confirmDelete', { titulo: deleteTarget?.titulo || '' })}
+          </Text>
+        </Modal.Body>
+        <Modal.Footer>
+          <Box display="flex" gap="2" justifyContent="flex-end">
+            <Button appearance="neutral" onClick={() => setDeleteTarget(null)} disabled={deleting}>
+              {t('common.cancel')}
+            </Button>
+            <Button appearance="danger" onClick={confirmDelete} disabled={deleting}>
+              {deleting ? <Spinner size="small" /> : t('personalizationItems.excluir')}
             </Button>
           </Box>
         </Modal.Footer>
